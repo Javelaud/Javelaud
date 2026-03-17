@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyse Sectorielle — Liasse Fiscale</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    header p { margin-top: 0.5rem; opacity: 0.8; font-size: 1rem; }
+
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .upload-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+
+    .upload-card h2 {
+      font-size: 1.3rem;
+      color: #0f3460;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .drop-zone {
+      border: 2px dashed #c7d2fe;
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      background: #f8f9ff;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #4f46e5;
+      background: #eef2ff;
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-zone .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .drop-zone p { color: #6b7280; }
+    .drop-zone strong { color: #4f46e5; }
+    .file-name {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      color: #059669;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-top: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #1a1a2e;
+      background: white;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .form-group select:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+
+    .btn-analyser {
+      margin-top: 2rem;
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-analyser:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-analyser:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Résultat */
+    .result-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      display: none;
+    }
+
+    .result-card.visible { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .result-header h2 {
+      font-size: 1.3rem;
+      color: #0f3460;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .status-badge.loading {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-badge.done {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #92400e;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #result-content {
+      line-height: 1.7;
+      color: #374151;
+    }
+
+    /* Markdown styles */
+    #result-content h1, #result-content h2, #result-content h3 {
+      color: #0f3460;
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    #result-content h1 { font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+    #result-content h2 { font-size: 1.2rem; }
+    #result-content h3 { font-size: 1rem; color: #4f46e5; }
+
+    #result-content p { margin-bottom: 0.75rem; }
+
+    #result-content ul, #result-content ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+    }
+
+    #result-content li { margin-bottom: 0.3rem; }
+
+    #result-content strong { color: #1a1a2e; }
+
+    #result-content code {
+      background: #f3f4f6;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+      font-family: "Courier New", monospace;
+    }
+
+    #result-content blockquote {
+      border-left: 4px solid #4f46e5;
+      padding-left: 1rem;
+      color: #6b7280;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+
+    #result-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    #result-content th {
+      background: #f3f4f6;
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      border: 1px solid #e5e7eb;
+    }
+
+    #result-content td {
+      padding: 0.6rem 1rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    #result-content tr:nth-child(even) td { background: #f9fafb; }
+
+    .error-msg {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📊 Analyse Sectorielle</h1>
+  <p>Déposez votre liasse fiscale pour obtenir un diagnostic financier complet</p>
+</header>
+
+<main>
+  <div class="upload-card">
+    <h2>📁 Déposer la liasse fiscale</h2>
+
+    <form id="upload-form">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="fichier" name="fichier" accept=".pdf" required />
+        <div class="icon">📄</div>
+        <p><strong>Cliquez ou glissez</strong> votre liasse fiscale ici</p>
+        <p style="font-size:0.85rem; margin-top:0.3rem;">Format PDF — Formulaires 2050 à 2058</p>
+        <div class="file-name" id="file-name"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="secteur">Secteur d'activité (optionnel)</label>
+        <select id="secteur" name="secteur">
+          <option value="">— Laisser Claude détecter automatiquement —</option>
+          <optgroup label="Commerce">
+            <option value="Commerce de détail alimentaire">Commerce de détail alimentaire</option>
+            <option value="Commerce de détail non alimentaire">Commerce de détail non alimentaire</option>
+            <option value="Commerce de gros">Commerce de gros</option>
+            <option value="E-commerce">E-commerce</option>
+          </optgroup>
+          <optgroup label="Services">
+            <option value="Services aux entreprises (B2B)">Services aux entreprises (B2B)</option>
+            <option value="Services aux particuliers (B2C)">Services aux particuliers (B2C)</option>
+            <option value="Conseil et expertise">Conseil et expertise</option>
+            <option value="Informatique et numérique">Informatique et numérique</option>
+            <option value="Hôtellerie-Restauration">Hôtellerie-Restauration</option>
+            <option value="Santé et médico-social">Santé et médico-social</option>
+            <option value="Immobilier">Immobilier</option>
+            <option value="Transport et logistique">Transport et logistique</option>
+          </optgroup>
+          <optgroup label="Industrie & BTP">
+            <option value="Industrie manufacturière">Industrie manufacturière</option>
+            <option value="BTP et construction">BTP et construction</option>
+            <option value="Agroalimentaire">Agroalimentaire</option>
+          </optgroup>
+          <optgroup label="Agriculture">
+            <option value="Agriculture et élevage">Agriculture et élevage</option>
+            <option value="Viticulture">Viticulture</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-analyser" id="btn-submit">
+        🔍 Lancer l'analyse sectorielle
+      </button>
+    </form>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <div class="result-header">
+      <h2>📈 Résultat de l'analyse</h2>
+      <span class="status-badge loading" id="status-badge">
+        <span class="spinner" id="spinner"></span>
+        <span id="status-text">Analyse en cours…</span>
+      </span>
+    </div>
+    <div id="result-content"></div>
+  </div>
+</main>
+
+<footer>Propulsé par Claude Opus 4.6 — Anthropic</footer>
+
+<script>
+  const form = document.getElementById('upload-form');
+  const fileInput = document.getElementById('fichier');
+  const dropZone = document.getElementById('drop-zone');
+  const fileName = document.getElementById('file-name');
+  const btnSubmit = document.getElementById('btn-submit');
+  const resultCard = document.getElementById('result-card');
+  const resultContent = document.getElementById('result-content');
+  const statusBadge = document.getElementById('status-badge');
+  const statusText = document.getElementById('status-text');
+  const spinner = document.getElementById('spinner');
+
+  // Afficher le nom du fichier sélectionné
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      fileName.textContent = '✅ ' + fileInput.files[0].name;
+    }
+  });
+
+  // Drag & drop visuel
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length > 0) {
+      fileInput.files = e.dataTransfer.files;
+      fileName.textContent = '✅ ' + e.dataTransfer.files[0].name;
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!fileInput.files.length) {
+      alert('Veuillez sélectionner un fichier PDF.');
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = '⏳ Upload et analyse en cours…';
+    resultCard.classList.add('visible');
+    resultContent.innerHTML = '';
+    statusBadge.className = 'status-badge loading';
+    statusBadge.innerHTML = '<span class="spinner"></span><span>Analyse en cours…</span>';
+
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch('/analyser', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur serveur : ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let markdownBuffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              statusBadge.className = 'status-badge done';
+              statusBadge.innerHTML = '✅ Analyse terminée';
+              btnSubmit.disabled = false;
+              btnSubmit.textContent = '🔍 Lancer l\'analyse sectorielle';
+            } else {
+              markdownBuffer += data;
+              resultContent.innerHTML = marked.parse(markdownBuffer);
+              // Auto-scroll
+              resultCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      resultContent.innerHTML = `<div class="error-msg">❌ Une erreur est survenue : ${err.message}<br>Vérifiez votre clé API et réessayez.</div>`;
+      statusBadge.className = 'status-badge';
+      statusBadge.textContent = 'Erreur';
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = '🔍 Lancer l\'analyse sectorielle';
+    }
+  });
+</script>
+
+</body>
+</html>
