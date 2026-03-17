@@ -179,7 +179,8 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
     except Exception as e:
         import traceback
         traceback.print_exc()
-        yield f"data: {json.dumps('❌ **Erreur lors de l\'analyse :** ' + str(e))}\n\n"
+        err_msg = f"❌ **Erreur lors de l'analyse :** {e}"
+        yield f"data: {json.dumps(err_msg)}\n\n"
     finally:
         if uploaded:
             try:
