@@ -32,7 +32,23 @@ Ton analyse doit systématiquement couvrir :
 
 Présente ton analyse de façon claire et structurée, avec des titres en markdown.
 Utilise des emojis pour rendre la lecture plus agréable (✅ pour les points forts, ⚠️ pour les vigilances, etc.).
-Sois précis sur les chiffres et explique leur signification pour un entrepreneur non-financier."""
+Sois précis sur les chiffres et explique leur signification pour un entrepreneur non-financier.
+
+Termine systématiquement chaque analyse par une section :
+
+---
+## 📚 Sources & Limites
+
+**Sources utilisées pour les benchmarks sectoriels :**
+- Banque de France — Ratios financiers des PME par secteur (code NAF)
+- INSEE — Données structurelles des entreprises françaises
+- FCGA / APCMA — Moyennes sectorielles PME et artisanat
+- Observatoires de branches professionnelles
+
+**Limites de cette analyse :**
+- Les benchmarks sont basés sur des données mémorisées jusqu'en début 2025 et peuvent ne pas refléter les évolutions récentes du secteur
+- Cette analyse est fournie à titre indicatif et ne remplace pas l'avis d'un expert-comptable
+- Pour toute décision importante (financement, cession, investissement), il est recommandé de croiser ces résultats avec les dernières publications de la Banque de France et de l'INSEE"""
 
 
 async def stream_analysis(file_content: bytes, filename: str, secteur: str):

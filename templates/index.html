@@ -277,6 +277,35 @@
       color: #9ca3af;
       font-size: 0.85rem;
     }
+
+    .info-banner {
+      background: #f0f4ff;
+      border-top: 1px solid #dde5ff;
+      padding: 1.5rem 1rem;
+    }
+
+    .info-banner-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .info-block {
+      flex: 1;
+      min-width: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+
+    .info-block strong {
+      color: #1e3a8a;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -348,6 +377,19 @@
     <div id="result-content"></div>
   </div>
 </main>
+
+<div class="info-banner">
+  <div class="info-banner-inner">
+    <div class="info-block">
+      <strong>📚 Sources des benchmarks sectoriels</strong>
+      <span>Banque de France · INSEE · FCGA / APCMA · Observatoires de branches professionnelles</span>
+    </div>
+    <div class="info-block">
+      <strong>⚠️ Limites</strong>
+      <span>Données mémorisées jusqu'en début 2025 — à titre indicatif uniquement. Pour toute décision importante, croiser avec les publications récentes de la Banque de France et de l'INSEE.</span>
+    </div>
+  </div>
+</div>
 
 <footer>Propulsé par Claude Opus 4.6 — Anthropic</footer>
 
