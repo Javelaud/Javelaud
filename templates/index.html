@@ -988,7 +988,7 @@
             currentMarkdown = markdownBuffer;
             btnDownload.classList.add('visible');
           } else {
-            markdownBuffer += data;
+            try { markdownBuffer += JSON.parse(data); } catch { markdownBuffer += data; }
             resultContent.innerHTML = marked.parse(markdownBuffer);
           }
         }

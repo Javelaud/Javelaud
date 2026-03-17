@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -173,12 +174,12 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
         ) as stream:
             async for text in stream.text_stream:
                 full_text_parts.append(text)
-                yield f"data: {text}\n\n"
+                yield f"data: {json.dumps(text)}\n\n"
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        yield f"data: ❌ **Erreur lors de l'analyse :** {e}\n\n"
+        yield f"data: {json.dumps('❌ **Erreur lors de l\'analyse :** ' + str(e))}\n\n"
     finally:
         if uploaded:
             try:
