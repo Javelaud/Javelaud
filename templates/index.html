@@ -489,9 +489,35 @@
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
       border-bottom: 2px solid #f0f0f0;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
 
     .result-header h2 { font-size: 1.3rem; color: var(--navy); font-weight: 700; }
+
+    .result-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-download {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      background: linear-gradient(135deg, var(--green), #047857);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-download:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-download.visible { display: inline-flex; }
 
     .status-badge {
       display: inline-flex;
@@ -786,10 +812,15 @@
   <div class="result-card" id="result-card">
     <div class="result-header">
       <h2>📈 Résultat de l'analyse</h2>
-      <span class="status-badge loading" id="status-badge">
-        <span class="spinner" id="spinner"></span>
-        <span id="status-text">Analyse en cours…</span>
-      </span>
+      <div class="result-header-right">
+        <button class="btn-download" id="btn-download" onclick="downloadReport()">
+          ⬇️ Télécharger le rapport
+        </button>
+        <span class="status-badge loading" id="status-badge">
+          <span class="spinner" id="spinner"></span>
+          <span id="status-text">Analyse en cours…</span>
+        </span>
+      </div>
     </div>
     <div id="result-content"></div>
   </div>
@@ -824,6 +855,21 @@
   const resultCard = document.getElementById('result-card');
   const resultContent = document.getElementById('result-content');
   const statusBadge = document.getElementById('status-badge');
+  const btnDownload = document.getElementById('btn-download');
+
+  let currentMarkdown = '';
+  let currentFilename = '';
+
+  function downloadReport() {
+    if (!currentMarkdown) return;
+    const blob = new Blob([currentMarkdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentFilename || 'analyse-sectorielle.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 0) {
@@ -850,9 +896,15 @@
     btnSubmit.textContent = '⏳ Upload et analyse en cours…';
     resultCard.classList.add('visible');
     resultContent.innerHTML = '';
+    currentMarkdown = '';
+    btnDownload.classList.remove('visible');
     statusBadge.className = 'status-badge loading';
     statusBadge.innerHTML = '<span class="spinner"></span><span>Analyse en cours…</span>';
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const file = fileInput.files[0];
+    const baseName = file ? file.name.replace(/\.pdf$/i, '') : 'analyse';
+    currentFilename = `analyse-sectorielle-${baseName}.md`;
 
     const formData = new FormData(form);
 
@@ -877,6 +929,8 @@
             statusBadge.innerHTML = '✅ Analyse terminée';
             btnSubmit.disabled = false;
             btnSubmit.textContent = '🔍 Lancer l\'analyse sectorielle';
+            currentMarkdown = markdownBuffer;
+            btnDownload.classList.add('visible');
           } else {
             markdownBuffer += data;
             resultContent.innerHTML = marked.parse(markdownBuffer);
