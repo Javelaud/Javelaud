@@ -154,7 +154,6 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
         with client.beta.messages.stream(
             model="claude-opus-4-6",
             max_tokens=4096,
-            thinking={"type": "adaptive"},
             system=SYSTEM_PROMPT,
             messages=[
                 {
@@ -175,8 +174,13 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
                 full_text_parts.append(text)
                 yield f"data: {text}\n\n"
 
+    except Exception as e:
+        yield f"data: \n\n❌ **Erreur lors de l'analyse :** {e}\n\n"
     finally:
-        client.beta.files.delete(uploaded.id)
+        try:
+            client.beta.files.delete(uploaded.id)
+        except Exception:
+            pass
 
     yield "data: [DONE]\n\n"
 
