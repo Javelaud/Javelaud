@@ -955,7 +955,7 @@
     currentMarkdown = '';
     btnDownload.classList.remove('visible');
     statusBadge.className = 'status-badge loading';
-    statusBadge.innerHTML = '<span class="spinner"></span><span>Analyse en cours…</span>';
+    statusBadge.innerHTML = '<span class="spinner"></span><span>Analyse en cours… <em style="font-size:0.85em;opacity:0.75">(cela peut prendre plusieurs minutes)</em></span>';
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     const file = fileInput.files[0];

@@ -64,6 +64,7 @@ Termine systématiquement chaque analyse par une section :
 def _send_email_sync(to_email: str, analysis_markdown: str, filename: str) -> None:
     """Envoie le rapport d'analyse par e-mail (exécuté dans un thread)."""
     if not all([SMTP_HOST, SMTP_USER, SMTP_PASSWORD]):
+        print("[EMAIL] Config SMTP manquante (SMTP_HOST/SMTP_USER/SMTP_PASSWORD)", flush=True)
         return
 
     html_body = md.markdown(
@@ -196,8 +197,9 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
             await asyncio.to_thread(
                 _send_email_sync, email, "".join(full_text_parts), filename
             )
-        except Exception:
-            pass  # L'analyse a réussi, l'échec e-mail est silencieux
+            print(f"[EMAIL] Rapport envoyé à {email}", flush=True)
+        except Exception as mail_err:
+            print(f"[EMAIL ERROR] Échec envoi à {email} : {mail_err}", flush=True)
 
 
 @app.get("/", response_class=HTMLResponse)
