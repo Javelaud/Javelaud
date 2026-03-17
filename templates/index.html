@@ -33,7 +33,6 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -864,68 +863,68 @@
   function downloadReport() {
     if (!currentMarkdown) return;
 
-    const btn = document.getElementById('btn-download');
-    btn.textContent = '⏳ Génération PDF…';
-    btn.disabled = true;
-
-    const reportName = (currentFilename || 'analyse-sectorielle').replace(/\.html$/, '');
+    const reportName = (currentFilename || 'analyse-sectorielle').replace(/\.pdf$/, '');
     const htmlContent = marked.parse(currentMarkdown);
     const dateStr = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 
-    const container = document.createElement('div');
-    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;background:#fff;';
-    container.innerHTML = `
-      <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body, div { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-        .pdf-wrap { padding: 14mm 16mm; font-size: 11px; line-height: 1.65; color: #1f2937; }
-        .pdf-header { background: #1e2a5e; color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; }
-        .pdf-header h1 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-        .pdf-header p { font-size: 9px; opacity: 0.8; }
-        h1 { font-size: 14px; color: #1e2a5e; border-bottom: 1.5px solid #e5e7eb; padding-bottom: 4px; margin: 16px 0 8px; }
-        h2 { font-size: 12px; color: #1e2a5e; border-bottom: 1px solid #f0f0f0; padding-bottom: 3px; margin: 14px 0 6px; }
-        h3 { font-size: 11px; color: #3b4bc8; margin: 10px 0 5px; }
-        p { margin-bottom: 6px; }
-        ul, ol { margin: 4px 0 8px 18px; }
-        li { margin-bottom: 2px; }
-        strong { color: #111827; font-weight: 600; }
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9.5px; }
-        th { background: #1e2a5e; color: white; padding: 5px 8px; text-align: left; font-weight: 600; border: 1px solid #1e2a5e; }
-        td { padding: 4px 8px; border: 1px solid #e5e7eb; }
-        tr:nth-child(even) td { background: #f8faff; }
-        blockquote { border-left: 3px solid #3b4bc8; padding: 6px 10px; color: #4b5563; margin: 8px 0; background: #f0f4ff; font-style: italic; }
-        code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-family: 'Courier New', monospace; }
-        hr { border: none; border-top: 1.5px solid #e5e7eb; margin: 14px 0; }
-        .pdf-footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 8px; color: #9ca3af; text-align: center; }
-      </style>
-      <div class="pdf-wrap">
-        <div class="pdf-header">
-          <h1>Diagnostic Financier Sectoriel</h1>
-          <p>Généré le ${dateStr} · Javelaud Analyse · Propulsé par Claude Opus 4.6</p>
-        </div>
-        ${htmlContent}
-        <div class="pdf-footer">
-          Outil indicatif uniquement · Aucune donnée conservée · Pour toute décision importante, croiser avec les publications récentes de la Banque de France et de l'INSEE.
-        </div>
-      </div>`;
-    document.body.appendChild(container);
+    const printHtml = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>${reportName}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.65; color: #1f2937; background: #fff; padding: 12mm 15mm; }
+  .rh { background: #1e2a5e; color: #fff; padding: 12pt 16pt; border-radius: 6pt; margin-bottom: 18pt; }
+  .rh h1 { font-size: 14pt; font-weight: 700; margin-bottom: 3pt; }
+  .rh p { font-size: 8pt; opacity: 0.8; }
+  h1 { font-size: 13pt; color: #1e2a5e; border-bottom: 1.5pt solid #e5e7eb; padding-bottom: 3pt; margin: 16pt 0 8pt; }
+  h2 { font-size: 11pt; color: #1e2a5e; border-bottom: 1pt solid #e5e7eb; padding-bottom: 2pt; margin: 12pt 0 6pt; }
+  h3 { font-size: 10pt; color: #3b4bc8; margin: 9pt 0 4pt; }
+  p { margin-bottom: 6pt; }
+  ul, ol { margin: 4pt 0 8pt 18pt; }
+  li { margin-bottom: 2pt; }
+  strong { color: #111827; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; margin: 10pt 0; font-size: 9pt; }
+  th { background: #1e2a5e; color: #fff; padding: 5pt 8pt; text-align: left; font-weight: 600; }
+  td { padding: 4pt 8pt; border-bottom: 1pt solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f8faff; }
+  blockquote { border-left: 3pt solid #3b4bc8; padding: 6pt 10pt; color: #4b5563; margin: 8pt 0; background: #f0f4ff; font-style: italic; }
+  code { background: #f3f4f6; padding: 1pt 3pt; border-radius: 3pt; font-size: 8.5pt; font-family: 'Courier New', monospace; }
+  hr { border: none; border-top: 1pt solid #e5e7eb; margin: 12pt 0; }
+  .rf { margin-top: 18pt; padding-top: 8pt; border-top: 1pt solid #e5e7eb; font-size: 7.5pt; color: #9ca3af; text-align: center; }
+  @media print {
+    body { padding: 0; }
+    .rh { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tr:nth-child(even) td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    blockquote { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h2 { page-break-after: avoid; }
+    table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <div class="rh">
+    <h1>Diagnostic Financier Sectoriel</h1>
+    <p>Généré le ${dateStr} · Javelaud Analyse · Propulsé par Claude Opus 4.6</p>
+  </div>
+  ${htmlContent}
+  <div class="rf">Outil indicatif uniquement · Aucune donnée conservée · Pour toute décision importante, croiser avec les publications récentes de la Banque de France et de l'INSEE.</div>
+</body>
+</html>`;
 
-    html2pdf()
-      .set({
-        margin: 0,
-        filename: reportName + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      })
-      .from(container)
-      .save()
-      .finally(() => {
-        document.body.removeChild(container);
-        btn.innerHTML = '⬇️ Télécharger le rapport';
-        btn.disabled = false;
-      });
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:0;height:0;border:0;';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(printHtml);
+    iframe.contentDocument.close();
+    iframe.contentWindow.focus();
+    setTimeout(() => {
+      iframe.contentWindow.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 300);
   }
 
   fileInput.addEventListener('change', () => {
