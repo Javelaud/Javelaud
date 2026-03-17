@@ -189,9 +189,7 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
             except Exception:
                 pass
 
-    yield "data: [DONE]\n\n"
-
-    # Envoi de l'e-mail après le streaming, dans un thread pour ne pas bloquer
+    # Envoi de l'e-mail AVANT [DONE] pour éviter que la déconnexion client n'interrompe l'envoi
     if email and full_text_parts:
         try:
             await asyncio.to_thread(
@@ -200,6 +198,8 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
             print(f"[EMAIL] Rapport envoyé à {email}", flush=True)
         except Exception as mail_err:
             print(f"[EMAIL ERROR] Échec envoi à {email} : {mail_err}", flush=True)
+
+    yield "data: [DONE]\n\n"
 
 
 @app.get("/", response_class=HTMLResponse)
