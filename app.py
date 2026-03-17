@@ -138,13 +138,14 @@ async def stream_analysis(
     """Upload le PDF vers l'API Files puis analyse en streaming."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
-    uploaded = client.beta.files.upload(
-        file=(filename, file_content, "application/pdf"),
-    )
-
     full_text_parts: list[str] = []
+    uploaded = None
 
     try:
+        uploaded = client.beta.files.upload(
+            file=(filename, file_content, "application/pdf"),
+        )
+
         secteur_info = f"\nSecteur déclaré par l'entrepreneur : {secteur}" if secteur else ""
         user_message = f"""Voici la liasse fiscale de l'entreprise à analyser.{secteur_info}
 
@@ -175,12 +176,15 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
                 yield f"data: {text}\n\n"
 
     except Exception as e:
-        yield f"data: \n\n❌ **Erreur lors de l'analyse :** {e}\n\n"
+        import traceback
+        traceback.print_exc()
+        yield f"data: ❌ **Erreur lors de l'analyse :** {e}\n\n"
     finally:
-        try:
-            client.beta.files.delete(uploaded.id)
-        except Exception:
-            pass
+        if uploaded:
+            try:
+                client.beta.files.delete(uploaded.id)
+            except Exception:
+                pass
 
     yield "data: [DONE]\n\n"
 
