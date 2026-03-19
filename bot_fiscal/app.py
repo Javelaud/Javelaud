@@ -4,6 +4,7 @@ from pathlib import Path
 
 import anthropic
 from bofip import BOT_FISCAL_SYSTEM_PROMPT
+from bofip_rag import fetch_bofip_context
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
@@ -96,7 +97,7 @@ async def send_message(session_id: str, body: MessageRequest):
     history.append({"role": "user", "content": user_content})
 
     return StreamingResponse(
-        _stream_response(session_id, history),
+        _stream_response(session_id, history, user_content),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -105,16 +106,22 @@ async def send_message(session_id: str, body: MessageRequest):
     )
 
 
-async def _stream_response(session_id: str, history: list[dict]):
+async def _stream_response(session_id: str, history: list[dict], question: str):
     """Génère la réponse en streaming et la sauvegarde dans l'historique."""
     client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
     assistant_parts: list[str] = []
+
+    # Enrichissement RAG : récupère les références BOFiP pertinentes
+    bofip_context = await fetch_bofip_context(question)
+    system_prompt = BOT_FISCAL_SYSTEM_PROMPT
+    if bofip_context:
+        system_prompt += f"\n\n{bofip_context}"
 
     try:
         async with client.messages.stream(
             model="claude-opus-4-6",
             max_tokens=2048,
-            system=BOT_FISCAL_SYSTEM_PROMPT,
+            system=system_prompt,
             messages=history,
         ) as stream:
             async for text in stream.text_stream:
