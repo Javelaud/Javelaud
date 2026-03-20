@@ -80,6 +80,35 @@
 
     .btn-new-session:hover { background: #4338ca; }
 
+    .btn-print {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.2s;
+    }
+
+    .btn-print:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      nav, .input-area, #welcome, #file-pill-container { display: none !important; }
+      body { background: white; height: auto; }
+      .main { max-width: 100%; padding: 0; overflow: visible; }
+      #chat-container { display: flex !important; overflow: visible; }
+      #messages { overflow: visible; padding: 1rem; }
+      .bubble { max-width: 90% !important; box-shadow: none !important; }
+      .message.user .bubble { background: #e8e8f0 !important; color: #1a1a2e !important; }
+      .bubble pre { white-space: pre-wrap; }
+    }
+
     .session-info {
       font-size: 0.75rem;
       color: rgba(255,255,255,0.5);
@@ -444,6 +473,12 @@
   </div>
   <div class="nav-actions">
     <span class="session-info" id="session-label"></span>
+    <button class="btn-print" id="print-btn" onclick="window.print()" title="Imprimer / Exporter en PDF">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      PDF
+    </button>
     <button class="btn-new-session" onclick="newSession()">+ Nouvelle session</button>
   </div>
 </nav>
@@ -515,6 +550,7 @@
       document.getElementById('session-label').textContent = 'Session ' + sessionId.slice(0, 8) + '…';
       document.getElementById('welcome').style.display = 'none';
       document.getElementById('chat-container').style.display = 'flex';
+      document.getElementById('print-btn').style.display = 'flex';
       document.getElementById('user-input').focus();
     } catch (e) {
       alert('Erreur lors de la création de la session : ' + e.message);
@@ -531,6 +567,7 @@
     pendingFilename = null;
     document.getElementById('messages').innerHTML = '';
     document.getElementById('file-pill-container').innerHTML = '';
+    document.getElementById('print-btn').style.display = 'none';
     document.getElementById('welcome').style.display = 'flex';
     document.getElementById('chat-container').style.display = 'none';
   }
