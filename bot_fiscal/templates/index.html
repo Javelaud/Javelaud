@@ -457,6 +457,40 @@
       font-weight: 500;
     }
 
+    /* ── QUICK ACTIONS ── */
+    .quick-actions {
+      display: none;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+
+    .quick-action-btn {
+      background: white;
+      border: 1.5px solid var(--indigo);
+      color: var(--indigo);
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .quick-action-btn:hover:not(:disabled) {
+      background: var(--indigo);
+      color: white;
+    }
+
+    .quick-action-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .bubble { max-width: 90%; }
@@ -509,6 +543,14 @@
   <div id="chat-container">
     <div id="messages"></div>
     <div class="input-area">
+      <div class="quick-actions" id="quick-actions">
+        <button class="quick-action-btn" id="juris-btn" onclick="askJurisprudence()" title="Rechercher des jurisprudences sur ce sujet via Légifrance">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Jurisprudences Légifrance
+        </button>
+      </div>
       <div id="file-pill-container"></div>
       <div class="input-wrapper">
         <button class="upload-btn" id="upload-btn" onclick="document.getElementById('file-input').click()" title="Joindre un document (PDF, image)">
@@ -551,6 +593,7 @@
       document.getElementById('welcome').style.display = 'none';
       document.getElementById('chat-container').style.display = 'flex';
       document.getElementById('print-btn').style.display = 'flex';
+      document.getElementById('quick-actions').style.display = 'flex';
       document.getElementById('user-input').focus();
     } catch (e) {
       alert('Erreur lors de la création de la session : ' + e.message);
@@ -568,6 +611,7 @@
     document.getElementById('messages').innerHTML = '';
     document.getElementById('file-pill-container').innerHTML = '';
     document.getElementById('print-btn').style.display = 'none';
+    document.getElementById('quick-actions').style.display = 'none';
     document.getElementById('welcome').style.display = 'flex';
     document.getElementById('chat-container').style.display = 'none';
   }
@@ -711,6 +755,7 @@
     input.style.height = 'auto';
     document.getElementById('send-btn').disabled = true;
     document.getElementById('upload-btn').disabled = true;
+    document.getElementById('juris-btn').disabled = true;
     isStreaming = true;
 
     // Vider la pill de fichier
@@ -778,8 +823,16 @@
       isStreaming = false;
       document.getElementById('send-btn').disabled = false;
       document.getElementById('upload-btn').disabled = false;
+      document.getElementById('juris-btn').disabled = false;
       document.getElementById('user-input').focus();
     }
+  }
+
+  function askJurisprudence() {
+    if (!sessionId || isStreaming) return;
+    document.getElementById('user-input').value =
+      'Recherche des jurisprudences du Conseil d\'État et des tribunaux administratifs pertinentes sur les sujets fiscaux que nous avons abordés. Présente-les de façon détaillée avec les références, dates et résumés.';
+    sendMessage();
   }
 
   function escapeHtml(str) {
