@@ -40,8 +40,8 @@ ALLOWED_MIME_TYPES = {
 
 class MessageRequest(BaseModel):
     content: str
-    file_id: str | None = None
-    filename: str | None = None
+    file_ids: list[str] | None = None
+    filenames: list[str] | None = None
 
 
 # ── Routes ──────────────────────────────────────────────────────────────────
@@ -142,7 +142,9 @@ async def send_message(session_id: str, body: MessageRequest):
         raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY non configurée")
 
     user_text = body.content.strip()
-    if not user_text and not body.file_id:
+    file_ids = body.file_ids or []
+    filenames = body.filenames or []
+    if not user_text and not file_ids:
         raise HTTPException(status_code=400, detail="Le message ne peut pas être vide")
 
     history = sessions[session_id]
@@ -155,21 +157,21 @@ async def send_message(session_id: str, body: MessageRequest):
         )
 
     # Construire le contenu du message utilisateur
-    if body.file_id:
+    if file_ids:
         user_msg_content: str | list = [
             {
                 "type": "document",
-                "source": {"type": "file", "file_id": body.file_id},
-                "title": body.filename or "document",
-            },
-            {"type": "text", "text": user_text or "Analyse ce document."},
-        ]
+                "source": {"type": "file", "file_id": fid},
+                "title": filenames[i] if i < len(filenames) else "document",
+            }
+            for i, fid in enumerate(file_ids)
+        ] + [{"type": "text", "text": user_text or "Analyse ces documents."}]
     else:
         user_msg_content = user_text
 
     history.append({"role": "user", "content": user_msg_content})
 
-    question_for_rag = user_text or (body.filename or "document")
+    question_for_rag = user_text or (filenames[0] if filenames else "document")
 
     return StreamingResponse(
         _stream_response(session_id, history, question_for_rag),
