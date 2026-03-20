@@ -203,7 +203,7 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
     try:
         stream_kwargs = dict(
             model="claude-opus-4-6",
-            max_tokens=2048,
+            max_tokens=4096,
             system=system_prompt,
             messages=history,
         )
