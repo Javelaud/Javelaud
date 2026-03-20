@@ -1,3 +1,4 @@
+import asyncio
 import os
 import uuid
 from pathlib import Path
@@ -5,6 +6,7 @@ from pathlib import Path
 import anthropic
 from bofip import BOT_FISCAL_SYSTEM_PROMPT
 from bofip_rag import fetch_bofip_context
+from legifrance import search_jurisprudence_ce
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
@@ -111,11 +113,16 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
     client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
     assistant_parts: list[str] = []
 
-    # Enrichissement RAG : récupère les références BOFiP pertinentes
-    bofip_context = await fetch_bofip_context(question)
+    # Enrichissement RAG : BOFiP et jurisprudence CE en parallèle
+    bofip_context, jurisprudence = await asyncio.gather(
+        fetch_bofip_context(question),
+        search_jurisprudence_ce(question[:200]),
+    )
     system_prompt = BOT_FISCAL_SYSTEM_PROMPT
     if bofip_context:
         system_prompt += f"\n\n{bofip_context}"
+    if jurisprudence:
+        system_prompt += jurisprudence
 
     try:
         async with client.messages.stream(
