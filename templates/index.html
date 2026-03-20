@@ -519,6 +519,40 @@
     .btn-download:hover { opacity: 0.88; transform: translateY(-1px); }
     .btn-download.visible { display: inline-flex; }
 
+    .btn-edit {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      background: white;
+      color: var(--indigo);
+      border: 1.5px solid var(--indigo);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-edit:hover { background: #eef2ff; transform: translateY(-1px); }
+    .btn-edit.visible { display: inline-flex; }
+
+    #editor-area {
+      display: none;
+      width: 100%;
+      min-height: 400px;
+      padding: 1rem;
+      border: 1.5px solid var(--indigo);
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: #1a1a2e;
+      background: #f8f9ff;
+      resize: vertical;
+      outline: none;
+    }
+    #editor-area:focus { box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -813,6 +847,9 @@
     <div class="result-header">
       <h2>📈 Résultat de l'analyse</h2>
       <div class="result-header-right">
+        <button class="btn-edit" id="btn-edit" onclick="toggleEdit()">
+          ✏️ Éditer le rapport
+        </button>
         <button class="btn-download" id="btn-download" onclick="downloadReport()">
           ⬇️ Télécharger le rapport
         </button>
@@ -823,6 +860,7 @@
       </div>
     </div>
     <div id="result-content" style="display:none;"></div>
+    <textarea id="editor-area" placeholder="Modifiez le contenu markdown ici…" oninput="previewEdit()"></textarea>
   </div>
 </section>
 
@@ -856,9 +894,32 @@
   const resultContent = document.getElementById('result-content');
   const statusBadge = document.getElementById('status-badge');
   const btnDownload = document.getElementById('btn-download');
+  const btnEdit = document.getElementById('btn-edit');
+  const editorArea = document.getElementById('editor-area');
 
   let currentMarkdown = '';
   let currentFilename = '';
+  let editMode = false;
+
+  function toggleEdit() {
+    editMode = !editMode;
+    if (editMode) {
+      editorArea.value = currentMarkdown;
+      editorArea.style.display = 'block';
+      resultContent.style.display = 'none';
+      btnEdit.innerHTML = '👁️ Aperçu';
+    } else {
+      currentMarkdown = editorArea.value;
+      resultContent.innerHTML = marked.parse(currentMarkdown);
+      editorArea.style.display = 'none';
+      resultContent.style.display = 'block';
+      btnEdit.innerHTML = '✏️ Éditer le rapport';
+    }
+  }
+
+  function previewEdit() {
+    currentMarkdown = editorArea.value;
+  }
 
   function downloadReport() {
     if (!currentMarkdown) return;
@@ -953,7 +1014,12 @@
     resultCard.classList.add('visible');
     resultContent.innerHTML = '';
     currentMarkdown = '';
+    editMode = false;
+    editorArea.style.display = 'none';
+    editorArea.value = '';
     btnDownload.classList.remove('visible');
+    btnEdit.classList.remove('visible');
+    btnEdit.innerHTML = '✏️ Éditer le rapport';
     statusBadge.className = 'status-badge loading';
     statusBadge.innerHTML = '<span class="spinner"></span><span>Analyse en cours…</span>';
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -987,6 +1053,7 @@
             btnSubmit.textContent = '🔍 Lancer l\'analyse sectorielle';
             currentMarkdown = markdownBuffer;
             btnDownload.classList.add('visible');
+            btnEdit.classList.add('visible');
           } else {
             markdownBuffer += data;
             resultContent.innerHTML = marked.parse(markdownBuffer);
