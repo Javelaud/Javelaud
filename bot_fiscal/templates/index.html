@@ -138,8 +138,13 @@
     }
 
     .welcome-icon {
-      font-size: 3rem;
       margin-bottom: 1rem;
+      display: flex;
+      justify-content: center;
+    }
+    .welcome-icon svg {
+      height: 80px;
+      width: auto;
     }
 
     #welcome h1 {
@@ -514,7 +519,12 @@
 
 <nav>
   <div class="nav-logo">
-    📊 Bot Fiscal
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90" style="height:28px;width:auto;vertical-align:middle;" role="img" aria-label="Socic">
+      <text x="0" y="72" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="72" fill="white" letter-spacing="-2">Socic</text>
+      <circle cx="178" cy="14" r="16" fill="#f5c400"/>
+      <polygon points="169,21 185,7 185,18 178,14" fill="white"/>
+      <polygon points="185,7 174,14 178,14 178,21" fill="white" opacity="0.8"/>
+    </svg>
     <span class="nav-badge">Propulsé par Claude Opus 4.6</span>
   </div>
   <div class="nav-actions">
@@ -533,8 +543,10 @@
 
   <!-- Écran d'accueil -->
   <div id="welcome">
-    <div class="welcome-icon">🧾</div>
-    <h1>Votre expert fiscal IA</h1>
+    <div class="welcome-icon">
+      <img src="https://www.socic.fr/.netlify/images?url=_astro%2FnewlogoBlue.TUsh4fqs.png&w=509&h=237" alt="Socic" style="height:80px;width:auto;">
+    </div>
+    <h1>Socic votre expert fiscal</h1>
     <p>Posez toutes vos questions sur la fiscalité française : TVA, IS, IR, liasses fiscales, BOFiP, optimisation fiscale…</p>
 
     <div class="topics">
