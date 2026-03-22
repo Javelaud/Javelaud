@@ -318,24 +318,24 @@
     }
 
     .bubble-dl-btn {
-      background: none;
-      border: none;
+      background: white;
+      border: 1px solid var(--border);
       cursor: pointer;
       color: var(--gray);
-      font-size: 0.72rem;
+      font-size: 0.75rem;
+      font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 0.25rem;
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      opacity: 0.55;
-      transition: opacity 0.15s, color 0.15s, background 0.15s;
+      gap: 0.3rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
 
     .bubble-dl-btn:hover {
-      opacity: 1;
       color: var(--indigo);
-      background: rgba(79,70,229,0.07);
+      border-color: var(--indigo);
+      background: rgba(79,70,229,0.05);
     }
 
     /* Typing indicator */
@@ -836,10 +836,11 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            .doc
+            Télécharger .doc
           </button>
         </div>
       `);
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
 
     } catch (e) {
       typingEl.remove();
