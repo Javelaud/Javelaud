@@ -300,6 +300,44 @@
     }
     .bubble strong { font-weight: 700; }
 
+    /* ── BUBBLE ACTIONS (téléchargement) ── */
+    .bubble-col {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+    }
+
+    .message.assistant .bubble {
+      max-width: 100%;
+    }
+
+    .bubble-actions {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.3rem;
+    }
+
+    .bubble-dl-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--gray);
+      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      opacity: 0.55;
+      transition: opacity 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .bubble-dl-btn:hover {
+      opacity: 1;
+      color: var(--indigo);
+      background: rgba(79,70,229,0.07);
+    }
+
     /* Typing indicator */
     .typing {
       display: flex;
@@ -518,7 +556,11 @@
         </button>
         <button class="upload-btn" id="juris-btn" onclick="askJurisprudence()" title="Jurisprudences Légifrance">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
           </svg>
         </button>
         <input type="file" id="file-input" accept=".pdf,image/jpeg,image/png,image/gif,image/webp" multiple style="display:none" onchange="handleFileSelect(this)" />
@@ -673,10 +715,20 @@
            ${escapeHtml(attachmentName)}
          </div>`
       : '';
-    div.innerHTML = `
-      <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
-      <div class="bubble" id="msg-${Date.now()}">${attachmentHtml}${contentHtml}</div>
-    `;
+    const msgId = 'msg-' + Date.now();
+    if (role === 'assistant') {
+      div.innerHTML = `
+        <div class="avatar">🤖</div>
+        <div class="bubble-col">
+          <div class="bubble" id="${msgId}">${attachmentHtml}${contentHtml}</div>
+        </div>
+      `;
+    } else {
+      div.innerHTML = `
+        <div class="avatar">👤</div>
+        <div class="bubble" id="${msgId}">${attachmentHtml}${contentHtml}</div>
+      `;
+    }
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
     return div.querySelector('.bubble');
@@ -777,6 +829,18 @@
         }
       }
 
+      // Ajouter le bouton de téléchargement .doc
+      bubble.insertAdjacentHTML('afterend', `
+        <div class="bubble-actions">
+          <button class="bubble-dl-btn" onclick="downloadAsDoc('${bubble.id}')" title="Télécharger en Word (.doc)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            .doc
+          </button>
+        </div>
+      `);
+
     } catch (e) {
       typingEl.remove();
       appendMessage('assistant', `<span style="color:#dc2626">❌ Erreur réseau : ${escapeHtml(e.message)}</span>`);
@@ -794,6 +858,46 @@
     document.getElementById('user-input').value =
       'Recherche des jurisprudences du Conseil d\'État et des tribunaux administratifs pertinentes sur les sujets fiscaux que nous avons abordés. Présente-les de façon détaillée avec les références, dates et résumés.';
     sendMessage();
+  }
+
+  function downloadAsDoc(bubbleId) {
+    const bubble = document.getElementById(bubbleId);
+    if (!bubble) return;
+    const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+    const htmlContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office'
+            xmlns:w='urn:schemas-microsoft-com:office:word'
+            xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset="utf-8">
+        <title>Bot Fiscal — Réponse</title>
+        <style>
+          body { font-family: Calibri, sans-serif; font-size: 11pt; color: #1a1a2e; margin: 2cm; line-height: 1.6; }
+          h1, h2, h3 { color: #0f1f45; margin-top: 14pt; }
+          h1 { font-size: 16pt; } h2 { font-size: 14pt; } h3 { font-size: 12pt; }
+          blockquote { border-left: 3px solid #4f46e5; padding-left: 10pt; color: #6b7280; margin: 6pt 0; }
+          code { font-family: Consolas, monospace; background: #f3f4f6; padding: 1pt 3pt; }
+          pre { background: #f3f4f6; padding: 8pt; font-family: Consolas, monospace; font-size: 10pt; }
+          p { margin: 5pt 0; }
+          ul, ol { padding-left: 18pt; margin: 5pt 0; }
+          strong { font-weight: bold; }
+          .header { color: #6b7280; font-size: 9pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 6pt; margin-bottom: 14pt; }
+        </style>
+      </head>
+      <body>
+        <div class="header">Bot Fiscal IA &mdash; Réponse du ${date}</div>
+        ${bubble.innerHTML}
+      </body>
+      </html>`;
+    const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bot-fiscal-${date}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   function escapeHtml(str) {
