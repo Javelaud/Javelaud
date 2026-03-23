@@ -157,9 +157,28 @@
     #welcome p {
       color: var(--gray);
       font-size: 1rem;
-      max-width: 480px;
+      max-width: 520px;
       line-height: 1.6;
-      margin-bottom: 2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .differentiators {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.75rem;
+      max-width: 580px;
+    }
+
+    .diff-badge {
+      background: #eef2ff;
+      color: var(--indigo);
+      border: 1px solid #c7d2fe;
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
     }
 
     .topics {
@@ -546,18 +565,24 @@
     <div class="welcome-icon">
       <img src="https://www.socic.fr/.netlify/images?url=_astro%2FnewlogoBlue.TUsh4fqs.png&w=509&h=237" alt="Socic" style="height:80px;width:auto;">
     </div>
-    <h1>Socic votre expert fiscal</h1>
-    <p>Posez toutes vos questions sur la fiscalité française : TVA, IS, IR, liasses fiscales, BOFiP, optimisation fiscale…</p>
+    <h1>Votre conseiller fiscal IA, sourcé et précis</h1>
+    <p>Contrairement à un chatbot généraliste, chaque réponse s'appuie sur le <strong>BOFiP officiel</strong> et la <strong>jurisprudence du Conseil d'État</strong> — mis à jour en temps réel. Posez votre vraie question, joignez vos documents, obtenez une analyse de niveau expert.</p>
+
+    <div class="differentiators">
+      <span class="diff-badge">📋 Sourcé sur le BOFiP officiel</span>
+      <span class="diff-badge">⚖️ Jurisprudence Conseil d'État</span>
+      <span class="diff-badge">📄 Analyse vos PDF & liasses fiscales</span>
+    </div>
 
     <div class="topics">
-      <span class="topic-chip" onclick="askExample(this)">Taux de TVA applicables</span>
-      <span class="topic-chip" onclick="askExample(this)">Calcul de l'IS PME</span>
-      <span class="topic-chip" onclick="askExample(this)">Lire une liasse fiscale 2050</span>
-      <span class="topic-chip" onclick="askExample(this)">Déficits reportables</span>
-      <span class="topic-chip" onclick="askExample(this)">Cotisation Foncière (CFE)</span>
-      <span class="topic-chip" onclick="askExample(this)">Contrôle fiscal : mes droits</span>
-      <span class="topic-chip" onclick="askExample(this)">Micro-entreprise vs réel</span>
-      <span class="topic-chip" onclick="askExample(this)">Plus-values professionnelles</span>
+      <span class="topic-chip" onclick="askExample(this)">Mon SCI peut-elle déduire ces travaux ?</span>
+      <span class="topic-chip" onclick="askExample(this)">Suis-je en risque de redressement fiscal ?</span>
+      <span class="topic-chip" onclick="askExample(this)">Quelle TVA pour mes prestations en ligne ?</span>
+      <span class="topic-chip" onclick="askExample(this)">Comment optimiser ma rémunération de dirigeant ?</span>
+      <span class="topic-chip" onclick="askExample(this)">Je reçois un avis de vérification, que faire ?</span>
+      <span class="topic-chip" onclick="askExample(this)">Holding ou structure en direct : quel régime ?</span>
+      <span class="topic-chip" onclick="askExample(this)">Transmettre mon entreprise en limitant l'impôt</span>
+      <span class="topic-chip" onclick="askExample(this)">Analyser ma liasse fiscale 2050</span>
     </div>
 
     <button class="btn-start" onclick="startSession()">Démarrer une session →</button>
