@@ -198,6 +198,11 @@ Compare ses ratios financiers avec les moyennes de son secteur et fournis des re
             pass  # L'analyse a réussi, l'échec e-mail est silencieux
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
