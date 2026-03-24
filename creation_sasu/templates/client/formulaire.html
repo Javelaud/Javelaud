@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Formulaire SASU — Javelaud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>Formulaire de création SASU</h1>
+    <p class="page-subtitle">Renseignez vos informations pour générer vos documents légaux</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="client-nav">
+    <a href="/client/dashboard" class="client-nav-item">Suivi</a>
+    <a href="/client/formulaire" class="client-nav-item active">Formulaire</a>
+    <a href="/client/documents" class="client-nav-item">Documents</a>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  <!-- Indicateur d'étapes -->
+  <div class="steps-indicator">
+    <div class="step active" data-step="1">
+      <span class="step-number">1</span>
+      <span class="step-label">Dirigeant</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" data-step="2">
+      <span class="step-number">2</span>
+      <span class="step-label">Filiation</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" data-step="3">
+      <span class="step-number">3</span>
+      <span class="step-label">Société</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" data-step="4">
+      <span class="step-number">4</span>
+      <span class="step-label">Récapitulatif</span>
+    </div>
+  </div>
+
+  <form method="post" action="/client/formulaire" id="sasu-form">
+
+    <!-- ÉTAPE 1 : Dirigeant -->
+    <div class="form-step active" id="step-1">
+      <div class="card">
+        <h2 class="card-title">Informations du dirigeant / Associé unique</h2>
+        <p class="card-desc">Ces informations serviront à rédiger les statuts et l'attestation de non-condamnation.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="civilite">Civilité <span class="required">*</span></label>
+            <select id="civilite" name="civilite" required>
+              <option value="">Choisir...</option>
+              <option value="M.">M.</option>
+              <option value="Mme">Mme</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="prenom">Prénom <span class="required">*</span></label>
+            <input type="text" id="prenom" name="prenom" required
+                   value="{{ dossier.prenom or '' }}" placeholder="Jean">
+          </div>
+          <div class="form-group">
+            <label for="nom">Nom de famille <span class="required">*</span></label>
+            <input type="text" id="nom" name="nom" required
+                   value="{{ dossier.nom or '' }}" placeholder="DUPONT">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nom_jeune_fille">Nom de naissance (si différent)</label>
+            <input type="text" id="nom_jeune_fille" name="nom_jeune_fille"
+                   value="{{ dossier.nom_jeune_fille or '' }}" placeholder="Optionnel">
+          </div>
+        </div>
+
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="date_naissance">Date de naissance <span class="required">*</span></label>
+            <input type="date" id="date_naissance" name="date_naissance" required
+                   value="{{ dossier.date_naissance or '' }}">
+          </div>
+          <div class="form-group">
+            <label for="lieu_naissance">Commune de naissance <span class="required">*</span></label>
+            <input type="text" id="lieu_naissance" name="lieu_naissance" required
+                   value="{{ dossier.lieu_naissance or '' }}" placeholder="Paris">
+          </div>
+        </div>
+
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="departement_naissance">Département de naissance <span class="required">*</span></label>
+            <input type="text" id="departement_naissance" name="departement_naissance" required
+                   value="{{ dossier.departement_naissance or '' }}" placeholder="75">
+          </div>
+          <div class="form-group">
+            <label for="nationalite">Nationalité <span class="required">*</span></label>
+            <input type="text" id="nationalite" name="nationalite" required
+                   value="{{ dossier.nationalite or 'Française' }}" placeholder="Française">
+          </div>
+        </div>
+
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="situation_matrimoniale">Situation matrimoniale <span class="required">*</span></label>
+            <select id="situation_matrimoniale" name="situation_matrimoniale" required>
+              <option value="">Choisir...</option>
+              <option value="Célibataire" {% if dossier.situation_matrimoniale == "Célibataire" %}selected{% endif %}>Célibataire</option>
+              <option value="Marié(e)" {% if dossier.situation_matrimoniale == "Marié(e)" %}selected{% endif %}>Marié(e)</option>
+              <option value="Pacsé(e)" {% if dossier.situation_matrimoniale == "Pacsé(e)" %}selected{% endif %}>Pacsé(e)</option>
+              <option value="Divorcé(e)" {% if dossier.situation_matrimoniale == "Divorcé(e)" %}selected{% endif %}>Divorcé(e)</option>
+              <option value="Veuf(ve)" {% if dossier.situation_matrimoniale == "Veuf(ve)" %}selected{% endif %}>Veuf(ve)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="profession_anterieure">Profession antérieure</label>
+            <input type="text" id="profession_anterieure" name="profession_anterieure"
+                   value="{{ dossier.profession_anterieure or '' }}" placeholder="Ex: Salarié, Étudiant...">
+          </div>
+        </div>
+
+        <h3 class="section-subtitle">Adresse personnelle</h3>
+        <div class="form-group">
+          <label for="adresse_rue">Adresse <span class="required">*</span></label>
+          <input type="text" id="adresse_rue" name="adresse_rue" required
+                 value="{{ dossier.adresse_rue or '' }}" placeholder="12 rue de la Paix">
+        </div>
+        <div class="form-row three-cols">
+          <div class="form-group">
+            <label for="adresse_cp">Code postal <span class="required">*</span></label>
+            <input type="text" id="adresse_cp" name="adresse_cp" required
+                   value="{{ dossier.adresse_cp or '' }}" placeholder="75001" maxlength="10">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label for="adresse_ville">Ville <span class="required">*</span></label>
+            <input type="text" id="adresse_ville" name="adresse_ville" required
+                   value="{{ dossier.adresse_ville or '' }}" placeholder="Paris">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="adresse_pays">Pays <span class="required">*</span></label>
+          <input type="text" id="adresse_pays" name="adresse_pays" required
+                 value="{{ dossier.adresse_pays or 'France' }}" placeholder="France">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-primary" onclick="nextStep(2)">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 : Filiation -->
+    <div class="form-step" id="step-2">
+      <div class="card">
+        <h2 class="card-title">Filiation</h2>
+        <p class="card-desc">Ces informations sont requises pour l'attestation de non-condamnation (art. L123-11-1 du Code de commerce).</p>
+
+        <h3 class="section-subtitle">Père</h3>
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="prenom_pere">Prénom du père <span class="required">*</span></label>
+            <input type="text" id="prenom_pere" name="prenom_pere" required
+                   value="{{ dossier.prenom_pere or '' }}" placeholder="Jean">
+          </div>
+          <div class="form-group">
+            <label for="nom_pere">Nom du père <span class="required">*</span></label>
+            <input type="text" id="nom_pere" name="nom_pere" required
+                   value="{{ dossier.nom_pere or '' }}" placeholder="DUPONT">
+          </div>
+        </div>
+
+        <h3 class="section-subtitle">Mère</h3>
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="prenom_mere">Prénom de la mère <span class="required">*</span></label>
+            <input type="text" id="prenom_mere" name="prenom_mere_naissance" required
+                   value="{{ dossier.prenom_mere_naissance or '' }}" placeholder="Marie">
+          </div>
+          <div class="form-group">
+            <label for="nom_mere">Nom de naissance de la mère <span class="required">*</span></label>
+            <input type="text" id="nom_mere" name="nom_mere" required
+                   value="{{ dossier.nom_mere or '' }}" placeholder="MARTIN">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="prevStep(1)">← Précédent</button>
+        <button type="button" class="btn btn-primary" onclick="nextStep(3)">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 : Société -->
+    <div class="form-step" id="step-3">
+      <div class="card">
+        <h2 class="card-title">Informations de la société</h2>
+        <p class="card-desc">Caractéristiques de votre future SASU.</p>
+
+        <div class="form-group">
+          <label for="denomination_sociale">Dénomination sociale <span class="required">*</span></label>
+          <input type="text" id="denomination_sociale" name="denomination_sociale" required
+                 value="{{ dossier.denomination_sociale or '' }}" placeholder="MA SOCIÉTÉ SAS">
+          <small class="form-hint">Vérifiez la disponibilité du nom sur inpi.fr avant de soumettre.</small>
+        </div>
+
+        <h3 class="section-subtitle">Siège social</h3>
+        <div class="form-group">
+          <label for="siege_social_rue">Adresse du siège <span class="required">*</span></label>
+          <input type="text" id="siege_social_rue" name="siege_social_rue" required
+                 value="{{ dossier.siege_social_rue or '' }}" placeholder="12 rue de la Paix">
+        </div>
+        <div class="form-row three-cols">
+          <div class="form-group">
+            <label for="siege_social_cp">Code postal <span class="required">*</span></label>
+            <input type="text" id="siege_social_cp" name="siege_social_cp" required
+                   value="{{ dossier.siege_social_cp or '' }}" placeholder="75001" maxlength="10">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label for="siege_social_ville">Ville <span class="required">*</span></label>
+            <input type="text" id="siege_social_ville" name="siege_social_ville" required
+                   value="{{ dossier.siege_social_ville or '' }}" placeholder="Paris">
+          </div>
+        </div>
+
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="capital_social">Capital social (€) <span class="required">*</span></label>
+            <input type="number" id="capital_social" name="capital_social" required min="1" step="0.01"
+                   value="{{ dossier.capital_social or '' }}" placeholder="1000">
+            <small class="form-hint">Minimum légal : 1 €</small>
+          </div>
+          <div class="form-group">
+            <label for="duree">Durée de la société (années) <span class="required">*</span></label>
+            <input type="number" id="duree" name="duree" required min="1" max="99"
+                   value="{{ dossier.duree or 99 }}" placeholder="99">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="objet_social">Objet social <span class="required">*</span></label>
+          <textarea id="objet_social" name="objet_social" required rows="4"
+                    placeholder="La société a pour objet : toutes activités de conseil, développement informatique, commercialisation de produits et services numériques, et plus généralement toutes opérations commerciales, industrielles ou financières...">{{ dossier.objet_social or '' }}</textarea>
+          <small class="form-hint">Décrivez l'activité principale et accessoire de la société.</small>
+        </div>
+
+        <div class="form-row two-cols">
+          <div class="form-group">
+            <label for="date_cloture_exercice">Date de clôture de l'exercice <span class="required">*</span></label>
+            <select id="date_cloture_exercice" name="date_cloture_exercice" required>
+              <option value="31/12" {% if dossier.date_cloture_exercice == "31/12" or not dossier.date_cloture_exercice %}selected{% endif %}>31 décembre</option>
+              <option value="31/03" {% if dossier.date_cloture_exercice == "31/03" %}selected{% endif %}>31 mars</option>
+              <option value="30/06" {% if dossier.date_cloture_exercice == "30/06" %}selected{% endif %}>30 juin</option>
+              <option value="30/09" {% if dossier.date_cloture_exercice == "30/09" %}selected{% endif %}>30 septembre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="regime_fiscal">Régime fiscal</label>
+            <select id="regime_fiscal" name="regime_fiscal">
+              <option value="IS" {% if dossier.regime_fiscal != "IR" %}selected{% endif %}>Impôt sur les Sociétés (IS)</option>
+              <option value="IR" {% if dossier.regime_fiscal == "IR" %}selected{% endif %}>Impôt sur le Revenu (IR) — option temporaire</option>
+            </select>
+            <small class="form-hint">La SASU est soumise à l'IS par défaut.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="prevStep(2)">← Précédent</button>
+        <button type="button" class="btn btn-primary" onclick="nextStep(4)">Récapitulatif →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 4 : Récapitulatif -->
+    <div class="form-step" id="step-4">
+      <div class="card">
+        <h2 class="card-title">Récapitulatif</h2>
+        <p class="card-desc">Vérifiez vos informations avant de soumettre votre dossier.</p>
+        <div id="recap-content" class="recap-grid"></div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
+        <p style="color: #92400e; margin: 0;">
+          <strong>Important :</strong> En soumettant ce formulaire, vous certifiez que les informations
+          fournies sont exactes et sincères. Ces données serviront à la rédaction de vos documents légaux.
+        </p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="prevStep(3)">← Modifier</button>
+        <button type="submit" class="btn btn-success">
+          ✓ Soumettre mon dossier
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

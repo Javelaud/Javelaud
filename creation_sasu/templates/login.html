@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — Javelaud</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1 class="auth-logo">Javelaud</h1>
+        <p class="auth-subtitle">Création de SASU en ligne</p>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/login" class="auth-form">
+        <div class="form-group">
+          <label for="email">Adresse email</label>
+          <input type="email" id="email" name="email" required placeholder="vous@example.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          Se connecter →
+        </button>
+      </form>
+
+      <p class="auth-footer-text">
+        Vous avez reçu une invitation ? Consultez votre email pour activer votre compte.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

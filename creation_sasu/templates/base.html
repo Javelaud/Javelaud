@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Création SASU — Javelaud{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="logo-text">Javelaud</span>
+      <span class="logo-sub">Création de société</span>
+    </div>
+    {% if user is defined and user %}
+    <div class="navbar-user">
+      <span class="user-name">{{ user.prenom }} {{ user.nom }}</span>
+      <span class="user-role badge-{{ user.role }}">{{ "Expert juridique" if user.role == "expert" else "Client" }}</span>
+      <a href="/logout" class="btn-logout">Déconnexion</a>
+    </div>
+    {% endif %}
+  </nav>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 Javelaud — Cabinet d'expertise juridique</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Mes documents — Javelaud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>Mes documents</h1>
+    <p class="page-subtitle">Documents générés et justificatifs à déposer</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="client-nav">
+    <a href="/client/dashboard" class="client-nav-item">Suivi</a>
+    <a href="/client/documents" class="client-nav-item active">Documents</a>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <!-- Documents générés -->
+  {% if generated_docs %}
+  <div class="card">
+    <h2 class="card-title">Documents légaux générés</h2>
+    <p class="card-desc">Ces documents ont été générés par votre expert juridique à partir de vos informations.</p>
+    <div class="doc-list">
+      {% for doc in generated_docs %}
+      <div class="doc-item">
+        <div class="doc-icon">📄</div>
+        <div class="doc-info">
+          <span class="doc-name">{{ doc.filename }}</span>
+          <span class="doc-type">
+            {% if doc.type == "statuts" %}Statuts SASU
+            {% elif doc.type == "attestation" %}Attestation de non-condamnation et filiation
+            {% endif %}
+          </span>
+        </div>
+        <span class="doc-badge doc-badge-generated">Généré</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Upload justificatifs -->
+  <div class="card">
+    <h2 class="card-title">Justificatifs à déposer</h2>
+    <p class="card-desc">
+      Déposez les documents suivants pour compléter votre dossier.
+      Formats acceptés : PDF, JPG, PNG (max 10 Mo).
+    </p>
+
+    {% set justif_types = [
+      ("piece_identite", "Pièce d'identité", "Carte nationale d'identité ou passeport en cours de validité"),
+      ("justificatif_domicile", "Justificatif de domicile", "Facture de moins de 3 mois (eau, électricité, gaz, téléphone fixe)"),
+      ("attestation_domiciliation", "Attestation de domiciliation", "Attestation du bailleur ou contrat de domiciliation")
+    ] %}
+
+    {% for type_key, type_label, type_desc in justif_types %}
+    {% set existing = uploaded_docs | selectattr("type", "equalto", type_key) | list | first %}
+    <div class="upload-section">
+      <div class="upload-header">
+        <div>
+          <h3 class="upload-title">{{ type_label }}</h3>
+          <p class="upload-desc">{{ type_desc }}</p>
+        </div>
+        {% if existing %}
+        <span class="badge-done">✓ Déposé</span>
+        {% else %}
+        <span class="badge-pending">À déposer</span>
+        {% endif %}
+      </div>
+
+      {% if existing %}
+      <div class="uploaded-file">
+        <span class="file-name">{{ existing.filename }}</span>
+      </div>
+      {% endif %}
+
+      <form method="post" action="/client/documents/upload"
+            enctype="multipart/form-data" class="upload-form">
+        <input type="hidden" name="doc_type" value="{{ type_key }}">
+        <div class="file-input-wrapper">
+          <label class="file-input-label">
+            <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png"
+                   onchange="this.parentElement.querySelector('.file-name-display').textContent = this.files[0]?.name || 'Aucun fichier choisi'">
+            <span>Choisir un fichier</span>
+          </label>
+          <span class="file-name-display">Aucun fichier choisi</span>
+          <button type="submit" class="btn btn-secondary btn-sm">
+            {% if existing %}Remplacer{% else %}Déposer{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+    {% if not loop.last %}<hr class="divider">{% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

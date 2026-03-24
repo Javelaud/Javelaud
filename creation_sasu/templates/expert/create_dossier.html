@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Nouveau dossier — Javelaud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-flex">
+      <div>
+        <h1>Créer un nouveau dossier</h1>
+        <p class="page-subtitle">Inviter un client à créer sa SASU en ligne</p>
+      </div>
+      <a href="/expert/dashboard" class="btn btn-secondary">← Retour</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card" style="max-width:600px; margin: 0 auto;">
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    <h2 class="card-title">Informations du client</h2>
+    <p class="card-desc">
+      Un email d'invitation sera envoyé au client pour qu'il puisse activer son espace
+      et remplir son formulaire de création de SASU.
+    </p>
+
+    <form method="post" action="/expert/dossiers/create" class="auth-form">
+      <div class="form-row two-cols">
+        <div class="form-group">
+          <label for="client_prenom">Prénom du client <span class="required">*</span></label>
+          <input type="text" id="client_prenom" name="client_prenom" required placeholder="Jean">
+        </div>
+        <div class="form-group">
+          <label for="client_nom">Nom du client <span class="required">*</span></label>
+          <input type="text" id="client_nom" name="client_nom" required placeholder="DUPONT">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="client_email">Adresse email du client <span class="required">*</span></label>
+        <input type="email" id="client_email" name="client_email" required
+               placeholder="jean.dupont@example.com">
+        <small class="form-hint">L'invitation sera envoyée à cette adresse.</small>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          Créer le dossier et envoyer l'invitation →
+        </button>
+      </div>
+    </form>
+
+    <div class="info-box" style="margin-top:24px;">
+      <h4>Ce qui se passe ensuite</h4>
+      <ol class="info-list">
+        <li>Le client reçoit un email avec un lien d'activation (valable 72h)</li>
+        <li>Il définit son mot de passe et accède à son espace</li>
+        <li>Il remplit le formulaire de création de SASU</li>
+        <li>Vous recevez une notification et pouvez générer les documents</li>
+      </ol>
+    </div>
+  </div>
+</div>
+{% endblock %}

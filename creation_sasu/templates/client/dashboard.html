@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Mon dossier — Javelaud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>Mon dossier SASU</h1>
+    {% if dossier and dossier.denomination_sociale %}
+      <p class="page-subtitle">{{ dossier.denomination_sociale }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container">
+  {% if not dossier %}
+    <div class="card" style="text-align:center; padding:60px;">
+      <p style="color:#6b7280;">Aucun dossier trouvé. Veuillez contacter votre expert juridique.</p>
+    </div>
+  {% else %}
+    <!-- Navigation client -->
+    <div class="client-nav">
+      <a href="/client/dashboard" class="client-nav-item active">Suivi</a>
+      {% if dossier.status == "invitation_envoyee" %}
+        <a href="/client/formulaire" class="client-nav-item">Formulaire</a>
+      {% endif %}
+      <a href="/client/documents" class="client-nav-item">Documents</a>
+    </div>
+
+    <!-- Timeline de progression -->
+    <div class="card">
+      <h2 class="card-title">Avancement de votre dossier</h2>
+      <div class="timeline">
+        {% for step in STATUS_ORDER %}
+        {% set is_done = STATUS_ORDER.index(step) <= STATUS_ORDER.index(dossier.status) %}
+        {% set is_current = step == dossier.status %}
+        <div class="timeline-item {% if is_done %}done{% endif %} {% if is_current %}current{% endif %}">
+          <div class="timeline-marker">
+            {% if is_done and not is_current %}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8l3.5 3.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            {% elif is_current %}
+              <div class="pulse-dot"></div>
+            {% else %}
+              <span>{{ loop.index }}</span>
+            {% endif %}
+          </div>
+          <div class="timeline-content">
+            <span class="timeline-label">{{ STATUS_LABELS[step] }}</span>
+            {% if is_current %}
+              <span class="badge-current">En cours</span>
+            {% elif is_done %}
+              <span class="badge-done">Terminé</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Action requise -->
+    {% if dossier.status == "invitation_envoyee" %}
+    <div class="action-card">
+      <div class="action-icon">📋</div>
+      <div class="action-content">
+        <h3>Action requise : Remplir votre formulaire</h3>
+        <p>Pour démarrer votre dossier, veuillez compléter le formulaire de création de SASU.</p>
+        <a href="/client/formulaire" class="btn btn-primary">Remplir le formulaire →</a>
+      </div>
+    </div>
+    {% elif dossier.status == "documents_signes" %}
+    <div class="action-card">
+      <div class="action-icon">📁</div>
+      <div class="action-content">
+        <h3>Action requise : Déposer vos justificatifs</h3>
+        <p>Veuillez déposer vos pièces justificatives pour poursuivre votre dossier.</p>
+        <a href="/client/documents" class="btn btn-primary">Déposer mes documents →</a>
+      </div>
+    </div>
+    {% elif dossier.status == "documents_envoyes_signature" %}
+    <div class="action-card info">
+      <div class="action-icon">✍️</div>
+      <div class="action-content">
+        <h3>En attente de votre signature</h3>
+        <p>Vos documents ont été envoyés pour signature électronique. Consultez votre email pour les signer via Oneflow.</p>
+      </div>
+    </div>
+    {% elif dossier.status == "kbis_recu" %}
+    <div class="action-card success">
+      <div class="action-icon">🎉</div>
+      <div class="action-content">
+        <h3>Félicitations ! Votre SASU est créée.</h3>
+        <p>Votre extrait KBIS est disponible. Votre société est officiellement immatriculée.</p>
+      </div>
+    </div>
+    {% endif %}
+
+  {% endif %}
+</div>
+{% endblock %}

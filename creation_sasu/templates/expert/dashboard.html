@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — Expert Javelaud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-flex">
+      <div>
+        <h1>Tableau de bord</h1>
+        <p class="page-subtitle">Gestion des dossiers de création de SASU</p>
+      </div>
+      <a href="/expert/dossiers/create" class="btn btn-primary">+ Nouveau dossier</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-label">Dossiers total</div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-number">{{ stats.en_cours }}</div>
+      <div class="stat-label">En cours</div>
+    </div>
+    <div class="stat-card stat-done">
+      <div class="stat-number">{{ stats.termines }}</div>
+      <div class="stat-label">Terminés</div>
+    </div>
+  </div>
+
+  <!-- Tableau des dossiers -->
+  <div class="card">
+    <h2 class="card-title">Tous les dossiers</h2>
+    {% if not dossiers %}
+    <div class="empty-state">
+      <p>Aucun dossier pour l'instant.</p>
+      <a href="/expert/dossiers/create" class="btn btn-primary">Créer le premier dossier →</a>
+    </div>
+    {% else %}
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Client</th>
+            <th>Société</th>
+            <th>Statut</th>
+            <th>Dernière mise à jour</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dossier in dossiers %}
+          <tr>
+            <td class="td-id">{{ dossier.id }}</td>
+            <td>
+              <div class="client-cell">
+                <span class="client-name">{{ dossier.client.prenom }} {{ dossier.client.nom }}</span>
+                <span class="client-email">{{ dossier.client.email }}</span>
+              </div>
+            </td>
+            <td>{{ dossier.denomination_sociale or "—" }}</td>
+            <td>
+              <span class="status-badge status-{{ dossier.status }}">
+                {{ STATUS_LABELS[dossier.status] }}
+              </span>
+            </td>
+            <td class="td-date">
+              {{ dossier.updated_at.strftime("%d/%m/%Y") if dossier.updated_at else "—" }}
+            </td>
+            <td>
+              <a href="/expert/dossiers/{{ dossier.id }}" class="btn btn-sm btn-secondary">
+                Ouvrir →
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

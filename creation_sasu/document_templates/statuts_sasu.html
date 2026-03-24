@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page {
+      margin: 2.5cm 2cm;
+      @bottom-right { content: "Page " counter(page) " / " counter(pages); font-size: 9pt; color: #666; }
+    }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #1a1a1a;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #1a1a1a;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .title-main {
+      font-size: 18pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 0;
+    }
+    .title-sub {
+      font-size: 13pt;
+      margin: 6px 0 0;
+      font-style: italic;
+    }
+    .company-name {
+      font-size: 22pt;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .company-type {
+      text-align: center;
+      font-size: 12pt;
+      margin-bottom: 30px;
+      color: #444;
+    }
+    .info-box {
+      border: 1px solid #ccc;
+      padding: 15px 20px;
+      margin: 20px 0 30px;
+      background: #f9f9f9;
+    }
+    .info-box p { margin: 4px 0; }
+    h2.article {
+      font-size: 12pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+      margin-top: 28px;
+    }
+    p { margin: 8px 0; text-align: justify; }
+    .page-break { page-break-before: always; }
+    .signature-section {
+      margin-top: 60px;
+      border-top: 1px solid #ccc;
+      padding-top: 30px;
+    }
+    .signature-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+    .signature-block {
+      width: 45%;
+    }
+    .signature-line {
+      border-bottom: 1px solid #333;
+      height: 60px;
+      margin: 10px 0 5px;
+    }
+    .val { font-weight: bold; }
+    .blank { font-style: italic; color: #888; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <p class="title-main">Statuts</p>
+  <p class="title-sub">Société par Actions Simplifiée Unipersonnelle</p>
+</div>
+
+<div class="company-name">{{ dossier.denomination_sociale or "DÉNOMINATION SOCIALE" }}</div>
+<div class="company-type">Société par Actions Simplifiée Unipersonnelle (SASU)</div>
+
+<div class="info-box">
+  <p><strong>Capital social :</strong>
+    <span class="val">{{ "%.2f €"|format(dossier.capital_social) if dossier.capital_social else "_____ €" }}</span>
+  </p>
+  <p><strong>Siège social :</strong>
+    <span class="val">
+      {{ dossier.siege_social_rue or "___" }},
+      {{ dossier.siege_social_cp or "___" }}
+      {{ dossier.siege_social_ville or "___" }}
+    </span>
+  </p>
+</div>
+
+<!-- ARTICLE 1 -->
+<h2 class="article">Article 1 — Forme</h2>
+<p>
+  Il est fondé entre l'associé unique des présents statuts une société par actions simplifiée
+  unipersonnelle (SASU) régie par les dispositions du Code de commerce relatives aux sociétés
+  par actions simplifiées (articles L. 227-1 et suivants) et par les présents statuts.
+</p>
+
+<!-- ARTICLE 2 -->
+<h2 class="article">Article 2 — Dénomination sociale</h2>
+<p>
+  La société est dénommée :
+  <strong>{{ dossier.denomination_sociale or "___________________________" }}</strong>
+</p>
+<p>
+  Tous les actes et documents émanant de la société et destinés aux tiers devront indiquer
+  la dénomination sociale, précédée ou suivie immédiatement des mots « Société par actions
+  simplifiée unipersonnelle » ou des initiales « SASU » et de l'énonciation du capital social.
+</p>
+
+<!-- ARTICLE 3 -->
+<h2 class="article">Article 3 — Siège social</h2>
+<p>
+  Le siège social est fixé au :
+  <strong>
+    {{ dossier.siege_social_rue or "___" }},
+    {{ dossier.siege_social_cp or "___" }}
+    {{ dossier.siege_social_ville or "___" }}
+  </strong>
+</p>
+<p>
+  Le siège social peut être transféré en tout autre lieu par décision de l'associé unique.
+</p>
+
+<!-- ARTICLE 4 -->
+<h2 class="article">Article 4 — Objet social</h2>
+<p>La société a pour objet, directement ou indirectement, en France et à l'étranger :</p>
+<p>{{ dossier.objet_social or "L'objet social n'a pas encore été renseigné." }}</p>
+<p>
+  Et plus généralement, toutes opérations commerciales, industrielles, financières, civiles,
+  mobilières ou immobilières, pouvant se rattacher directement ou indirectement à l'un des
+  objets spécifiés ou à tout objet similaire ou connexe, ou susceptibles d'en faciliter
+  l'extension ou le développement.
+</p>
+
+<!-- ARTICLE 5 -->
+<h2 class="article">Article 5 — Durée</h2>
+<p>
+  La durée de la société est fixée à
+  <strong>{{ dossier.duree or "99" }} ({{ dossier.duree or "quatre-vingt-dix-neuf" }}) ans</strong>
+  à compter de la date de son immatriculation au Registre du Commerce et des Sociétés,
+  sauf dissolution anticipée ou prorogation décidée par l'associé unique.
+</p>
+
+<!-- ARTICLE 6 -->
+<h2 class="article">Article 6 — Capital social</h2>
+<p>
+  Le capital social est fixé à la somme de
+  <strong>{{ "%.2f euros (%.0f €)"|format(dossier.capital_social, dossier.capital_social) if dossier.capital_social else "_____________ euros" }}</strong>.
+</p>
+<p>
+  Il est divisé en actions de
+  {% if dossier.capital_social and dossier.capital_social >= 1 %}
+    <strong>1,00 euro (1 €)</strong> de valeur nominale chacune, soit
+    <strong>{{ "%.0f"|format(dossier.capital_social) }} action(s)</strong>
+  {% else %}
+    <strong>_____</strong> euro(s) de valeur nominale chacune
+  {% endif %}
+  entièrement souscrites et libérées, toutes de même catégorie.
+</p>
+
+<!-- ARTICLE 7 -->
+<h2 class="article">Article 7 — Apports</h2>
+<p>
+  <strong>Apports en numéraire.</strong>
+  L'associé unique, <strong>{{ dossier.civilite or "" }} {{ dossier.prenom or "_____" }} {{ dossier.nom or "_____" }}</strong>,
+  apporte à la société une somme de
+  <strong>{{ "%.2f euros"|format(dossier.capital_social) if dossier.capital_social else "_____________ euros" }}</strong>
+  en numéraire.
+</p>
+<p>
+  Cette somme a été déposée au crédit d'un compte ouvert au nom de la société en formation
+  conformément aux dispositions légales. Les fonds resteront bloqués jusqu'à l'immatriculation
+  de la société au Registre du Commerce et des Sociétés.
+</p>
+
+<!-- ARTICLE 8 -->
+<h2 class="article">Article 8 — Actions</h2>
+<p>
+  Les actions sont nominatives. Elles sont inscrites au nom de leur titulaire dans des comptes
+  tenus par la société.
+</p>
+<p>
+  Les actions ne peuvent être librement cédées qu'à l'associé unique ou à une entité qu'il
+  contrôle. Toute cession à un tiers doit être autorisée par décision de l'associé unique.
+</p>
+<p>
+  Les actions sont indivisibles à l'égard de la société.
+</p>
+
+<div class="page-break"></div>
+
+<!-- ARTICLE 9 -->
+<h2 class="article">Article 9 — Président</h2>
+<p>
+  La société est dirigée par un Président, personne physique ou morale, associé ou non.
+</p>
+<p>
+  Le premier Président de la société est
+  <strong>{{ dossier.civilite or "" }} {{ dossier.prenom or "_____" }} {{ dossier.nom or "_____" }}</strong>,
+  demeurant au
+  <strong>
+    {{ dossier.adresse_rue or "___" }},
+    {{ dossier.adresse_cp or "___" }}
+    {{ dossier.adresse_ville or "___" }}
+  </strong>,
+  né(e) le <strong>{{ date_naissance }}</strong> à <strong>{{ dossier.lieu_naissance or "___" }}</strong>
+  ({{ dossier.departement_naissance or "___" }}), de nationalité {{ dossier.nationalite or "française" }}.
+</p>
+<p>
+  Le Président est nommé pour une durée indéterminée. Il peut être révoqué et remplacé
+  par décision de l'associé unique.
+</p>
+<p>
+  Les fonctions de Président prennent fin par le décès, l'incapacité ou la révocation.
+</p>
+
+<!-- ARTICLE 10 -->
+<h2 class="article">Article 10 — Pouvoirs du Président</h2>
+<p>
+  Le Président est investi des pouvoirs les plus étendus pour agir en toute circonstance
+  au nom de la société, dans la limite de l'objet social et sous réserve des pouvoirs
+  expressément réservés par la loi ou les présents statuts à l'associé unique.
+</p>
+<p>
+  Le Président représente la société à l'égard des tiers. La société est engagée même
+  par les actes du Président qui ne relèvent pas de l'objet social, à moins qu'elle ne
+  prouve que le tiers savait que l'acte dépassait cet objet ou qu'il ne pouvait l'ignorer.
+</p>
+
+<!-- ARTICLE 11 -->
+<h2 class="article">Article 11 — Décisions de l'associé unique</h2>
+<p>
+  L'associé unique exerce les pouvoirs dévolus aux assemblées d'actionnaires par les
+  dispositions légales et réglementaires applicables aux sociétés par actions simplifiées.
+</p>
+<p>
+  Les décisions de l'associé unique sont répertoriées dans un registre tenu au siège social.
+  Elles sont constatées dans des procès-verbaux signés par l'associé unique, portés sur ce
+  registre ou annexés à celui-ci.
+</p>
+<p>
+  Les décisions portant sur les matières suivantes ne peuvent être déléguées :
+</p>
+<ul>
+  <li>Approbation des comptes annuels et affectation des résultats</li>
+  <li>Modifications statutaires</li>
+  <li>Transformation, fusion, dissolution de la société</li>
+  <li>Nomination et révocation du Président</li>
+  <li>Émission de valeurs mobilières</li>
+</ul>
+
+<!-- ARTICLE 12 -->
+<h2 class="article">Article 12 — Exercice social</h2>
+<p>
+  L'exercice social commence le 1er janvier et se termine le
+  {% if dossier.date_cloture_exercice %}
+    {% set parts = dossier.date_cloture_exercice.split('/') %}
+    {% set mois_noms = {"01": "janvier", "02": "février", "03": "mars", "04": "avril", "05": "mai", "06": "juin", "07": "juillet", "08": "août", "09": "septembre", "10": "octobre", "11": "novembre", "12": "décembre"} %}
+    <strong>{{ parts[0] }} {{ mois_noms.get(parts[1], parts[1]) }}</strong> de chaque année.
+  {% else %}
+    <strong>31 décembre</strong> de chaque année.
+  {% endif %}
+</p>
+<p>
+  Par exception, le premier exercice social débutera à compter de la date d'immatriculation
+  de la société au Registre du Commerce et des Sociétés et s'achèvera au
+  {% if dossier.date_cloture_exercice %}{{ dossier.date_cloture_exercice }}{% else %}31/12{% endif %}
+  de la même année ou de l'année suivante.
+</p>
+
+<!-- ARTICLE 13 -->
+<h2 class="article">Article 13 — Résultats et affectation</h2>
+<p>
+  La société est soumise à l'impôt sur les sociétés (IS) dans les conditions de droit commun.
+  {% if dossier.regime_fiscal == "IR" %}
+  L'associé unique a opté pour le régime de l'impôt sur le revenu (IR) à titre temporaire,
+  conformément aux dispositions de l'article 8 du Code général des impôts, pour une durée
+  n'excédant pas cinq exercices.
+  {% endif %}
+</p>
+<p>
+  Le bénéfice distribuable est constitué par le bénéfice de l'exercice diminué des pertes
+  antérieures et augmenté des reports bénéficiaires, après prélèvement pour la constitution
+  de la réserve légale.
+</p>
+<p>
+  L'associé unique décide de l'affectation du bénéfice distribuable lors de l'approbation
+  des comptes annuels.
+</p>
+
+<!-- ARTICLE 14 -->
+<h2 class="article">Article 14 — Dissolution — Liquidation</h2>
+<p>
+  La société est dissoute à l'expiration du terme fixé par les statuts ou par décision de
+  l'associé unique, ou pour l'une des causes prévues par la loi.
+</p>
+<p>
+  La dissolution est suivie de la liquidation de la société. Le liquidateur est désigné
+  par décision de l'associé unique. Il exerce les fonctions qui lui sont dévolues par la loi.
+</p>
+<p>
+  L'actif net subsistant après le remboursement du capital nominal est partagé entre
+  l'associé unique.
+</p>
+
+<!-- Signatures -->
+<div class="signature-section">
+  <p style="text-align:center;">
+    Fait à <strong>{{ dossier.siege_social_ville or "_______________" }}</strong>,
+    le <strong>{{ date_today }}</strong>
+  </p>
+  <p style="text-align:center; margin-top:16px;">
+    En <strong>un</strong> original.
+  </p>
+
+  <div class="signature-grid">
+    <div class="signature-block">
+      <p><strong>L'associé unique et Président</strong></p>
+      <p>{{ dossier.civilite or "" }} {{ dossier.prenom or "_____" }} {{ dossier.nom or "_____" }}</p>
+      <div class="signature-line"></div>
+      <p style="font-size:9pt; color:#666;">Signature précédée de la mention manuscrite « Lu et approuvé »</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

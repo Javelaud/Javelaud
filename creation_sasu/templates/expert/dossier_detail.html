@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Dossier #{{ dossier.id }} — Javelaud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-flex">
+      <div>
+        <h1>
+          Dossier #{{ dossier.id }}
+          {% if dossier.denomination_sociale %}— {{ dossier.denomination_sociale }}{% endif %}
+        </h1>
+        <p class="page-subtitle">
+          {{ dossier.client.prenom }} {{ dossier.client.nom }} · {{ dossier.client.email }}
+        </p>
+      </div>
+      <a href="/expert/dashboard" class="btn btn-secondary">← Retour</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <div class="detail-grid">
+
+    <!-- Colonne principale -->
+    <div class="detail-main">
+
+      <!-- Statut actuel + actions -->
+      <div class="card">
+        <h2 class="card-title">Statut du dossier</h2>
+        <div class="current-status">
+          <span class="status-badge-large status-{{ dossier.status }}">
+            {{ STATUS_LABELS[dossier.status] }}
+          </span>
+        </div>
+
+        <!-- Timeline compacte -->
+        <div class="timeline-compact">
+          {% for step in STATUS_ORDER %}
+          {% set is_done = STATUS_ORDER.index(step) <= STATUS_ORDER.index(dossier.status) %}
+          <div class="tc-item {% if is_done %}done{% endif %} {% if step == dossier.status %}current{% endif %}">
+            <div class="tc-dot"></div>
+            <span class="tc-label">{{ STATUS_LABELS[step] }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Changer le statut -->
+        <details class="status-changer">
+          <summary>Changer le statut</summary>
+          <form method="post" action="/expert/dossiers/{{ dossier.id }}/status" style="margin-top:12px;">
+            <div class="form-row two-cols">
+              <div class="form-group">
+                <label for="new_status">Nouveau statut</label>
+                <select id="new_status" name="new_status" required>
+                  {% for step in STATUS_ORDER %}
+                  <option value="{{ step }}" {% if step == dossier.status %}selected{% endif %}>
+                    {{ STATUS_LABELS[step] }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="note">Note (optionnel)</label>
+                <input type="text" id="note" name="note" placeholder="Commentaire...">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Mettre à jour</button>
+          </form>
+        </details>
+      </div>
+
+      <!-- Actions documents -->
+      {% if dossier.status != "invitation_envoyee" %}
+      <div class="card">
+        <h2 class="card-title">Documents légaux</h2>
+        <p class="card-desc">Générez les documents à partir des informations du formulaire.</p>
+
+        <div class="doc-actions">
+          <a href="/expert/dossiers/{{ dossier.id }}/pdf/statuts"
+             class="btn btn-secondary" target="_blank">
+            📄 Télécharger les Statuts SASU
+          </a>
+          <a href="/expert/dossiers/{{ dossier.id }}/pdf/attestation"
+             class="btn btn-secondary" target="_blank">
+            📄 Télécharger l'Attestation
+          </a>
+        </div>
+
+        {% if not dossier.oneflow_contract_id %}
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid #e5e7eb;">
+          <h3 style="font-size:15px; margin-bottom:8px;">Envoyer pour signature via Oneflow</h3>
+          <p class="card-desc">Les deux documents seront générés et envoyés au client pour signature électronique.</p>
+          <form method="post" action="/expert/dossiers/{{ dossier.id }}/oneflow">
+            <button type="submit" class="btn btn-primary"
+                    onclick="return confirm('Envoyer les documents pour signature via Oneflow ?')">
+              ✉️ Envoyer via Oneflow
+            </button>
+          </form>
+        </div>
+        {% else %}
+        <div class="info-box" style="margin-top:16px;">
+          <strong>✓ Envoyé via Oneflow</strong>
+          <p>Contrat : <code>{{ dossier.oneflow_contract_id }}</code></p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Justificatifs déposés -->
+      {% set uploaded = dossier.documents | selectattr("is_generated", "equalto", false) | list %}
+      {% if uploaded %}
+      <div class="card">
+        <h2 class="card-title">Justificatifs déposés</h2>
+        <div class="doc-list">
+          {% for doc in uploaded %}
+          <div class="doc-item">
+            <div class="doc-icon">📎</div>
+            <div class="doc-info">
+              <span class="doc-name">{{ doc.filename }}</span>
+              <span class="doc-type">
+                {% if doc.type == "piece_identite" %}Pièce d'identité
+                {% elif doc.type == "justificatif_domicile" %}Justificatif de domicile
+                {% elif doc.type == "attestation_domiciliation" %}Attestation de domiciliation
+                {% endif %}
+              </span>
+            </div>
+            <a href="/expert/dossiers/{{ dossier.id }}/files/{{ doc.id }}"
+               class="btn btn-sm btn-secondary">Télécharger</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Données du formulaire -->
+      {% if dossier.status != "invitation_envoyee" %}
+      <div class="card">
+        <h2 class="card-title">Données du formulaire</h2>
+        <div class="data-grid">
+          <div class="data-section">
+            <h3>Dirigeant</h3>
+            <table class="info-table">
+              <tr><th>Civilité</th><td>{{ dossier.civilite or "—" }}</td></tr>
+              <tr><th>Nom complet</th><td>{{ dossier.prenom }} {{ dossier.nom }}</td></tr>
+              {% if dossier.nom_jeune_fille %}
+              <tr><th>Nom de naissance</th><td>{{ dossier.nom_jeune_fille }}</td></tr>
+              {% endif %}
+              <tr><th>Date de naissance</th><td>{{ dossier.date_naissance or "—" }}</td></tr>
+              <tr><th>Lieu de naissance</th><td>{{ dossier.lieu_naissance or "—" }} ({{ dossier.departement_naissance or "—" }})</td></tr>
+              <tr><th>Nationalité</th><td>{{ dossier.nationalite or "—" }}</td></tr>
+              <tr><th>Situation matrimoniale</th><td>{{ dossier.situation_matrimoniale or "—" }}</td></tr>
+              <tr><th>Adresse</th><td>{{ dossier.adresse_rue or "—" }}, {{ dossier.adresse_cp or "" }} {{ dossier.adresse_ville or "" }}</td></tr>
+            </table>
+          </div>
+          <div class="data-section">
+            <h3>Filiation</h3>
+            <table class="info-table">
+              <tr><th>Père</th><td>{{ dossier.prenom_pere or "—" }} {{ dossier.nom_pere or "" }}</td></tr>
+              <tr><th>Mère</th><td>{{ dossier.prenom_mere_naissance or "—" }} {{ dossier.nom_mere or "" }}</td></tr>
+            </table>
+          </div>
+          <div class="data-section">
+            <h3>Société</h3>
+            <table class="info-table">
+              <tr><th>Dénomination</th><td>{{ dossier.denomination_sociale or "—" }}</td></tr>
+              <tr><th>Siège social</th><td>{{ dossier.siege_social_rue or "—" }}, {{ dossier.siege_social_cp or "" }} {{ dossier.siege_social_ville or "" }}</td></tr>
+              <tr><th>Capital social</th><td>{{ "%.2f €"|format(dossier.capital_social) if dossier.capital_social else "—" }}</td></tr>
+              <tr><th>Durée</th><td>{{ dossier.duree or "—" }} ans</td></tr>
+              <tr><th>Clôture exercice</th><td>{{ dossier.date_cloture_exercice or "—" }}</td></tr>
+              <tr><th>Régime fiscal</th><td>{{ dossier.regime_fiscal or "IS" }}</td></tr>
+              <tr><th>Objet social</th><td>{{ dossier.objet_social or "—" }}</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="card">
+        <div class="empty-state">
+          <p>Le client n'a pas encore rempli le formulaire.</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Colonne latérale -->
+    <div class="detail-sidebar">
+
+      <!-- Notes expert -->
+      <div class="card">
+        <h2 class="card-title">Notes internes</h2>
+        <form method="post" action="/expert/dossiers/{{ dossier.id }}/notes">
+          <textarea name="notes" rows="5" placeholder="Notes internes..."
+                    style="width:100%; box-sizing:border-box; border:1px solid #d1d5db; border-radius:6px; padding:10px; font-size:14px; resize:vertical;">{{ dossier.notes or '' }}</textarea>
+          <button type="submit" class="btn btn-secondary btn-sm" style="margin-top:8px;">Sauvegarder</button>
+        </form>
+      </div>
+
+      <!-- Historique -->
+      <div class="card">
+        <h2 class="card-title">Historique</h2>
+        {% if not history %}
+        <p class="card-desc">Aucun historique.</p>
+        {% else %}
+        <div class="history-list">
+          {% for item in history %}
+          <div class="history-item">
+            <div class="history-meta">{{ item.changed_at.strftime("%d/%m/%Y %H:%M") }}</div>
+            <div class="history-change">
+              <span class="history-arrow">{{ STATUS_LABELS[item.old_status] }}</span>
+              <span>→</span>
+              <span class="history-new">{{ STATUS_LABELS[item.new_status] }}</span>
+            </div>
+            {% if item.note %}
+            <div class="history-note">{{ item.note }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

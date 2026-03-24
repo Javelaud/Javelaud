@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lien invalide — Javelaud</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-card" style="text-align:center;">
+      <div class="auth-header">
+        <h1 class="auth-logo">Javelaud</h1>
+      </div>
+      <div class="alert alert-error" style="margin-bottom:20px;">
+        {% if expired %}
+          Ce lien d'invitation a expiré. Veuillez contacter votre expert juridique pour recevoir un nouveau lien.
+        {% else %}
+          Ce lien d'invitation est invalide ou a déjà été utilisé.
+        {% endif %}
+      </div>
+      <a href="/login" class="btn btn-primary">Aller à la connexion</a>
+    </div>
+  </div>
+</body>
+</html>
