@@ -1,39 +1,49 @@
 /* ==========================================
-   JAVELAUD — Création SASU : JS
+   JAVELAUD — Création SASU
+   Multi-step form + UI helpers
    ========================================== */
 
 // ==========================================
-// Multi-step form navigation
+// Multi-step form (Tailwind version)
 // ==========================================
 
 function nextStep(step) {
-  const current = document.querySelector('.form-step.active');
-  const currentNum = parseInt(current.id.replace('step-', ''));
+  const current = document.querySelector('.step-panel.active');
+  if (!current) return;
 
-  // Validate current step
-  const inputs = current.querySelectorAll('input[required], select[required], textarea[required]');
+  // Validate current step fields
+  const required = current.querySelectorAll('input[required], select[required], textarea[required]');
   let valid = true;
-  inputs.forEach(input => {
-    if (!input.value.trim()) {
-      input.style.borderColor = '#dc2626';
-      input.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.1)';
+  required.forEach(el => {
+    if (!el.value.trim()) {
+      el.classList.add('border-red-400', 'bg-red-50');
+      el.classList.remove('border-slate-200', 'bg-slate-50');
       valid = false;
     } else {
-      input.style.borderColor = '';
-      input.style.boxShadow = '';
+      el.classList.remove('border-red-400', 'bg-red-50');
+      el.classList.add('border-slate-200', 'bg-slate-50');
     }
   });
 
+  // Radio group validation for civilite
+  const civiliteRadios = current.querySelectorAll('input[name="civilite"]');
+  if (civiliteRadios.length > 0) {
+    const checked = current.querySelector('input[name="civilite"]:checked');
+    if (!checked) {
+      valid = false;
+      const firstRadioLabel = civiliteRadios[0].closest('label');
+      if (firstRadioLabel) firstRadioLabel.classList.add('ring-2', 'ring-red-400');
+    }
+  }
+
   if (!valid) {
-    const firstInvalid = current.querySelector('input[required]:invalid, input[required][value=""], select[required]');
+    showToast('Veuillez remplir tous les champs obligatoires.', 'error');
+    const firstInvalid = current.querySelector('.border-red-400');
     if (firstInvalid) firstInvalid.focus();
-    showStepError('Veuillez remplir tous les champs obligatoires.');
     return;
   }
 
-  clearStepError();
-
-  // Move to next step
+  // Transition to next step
   current.classList.remove('active');
   const next = document.getElementById(`step-${step}`);
   if (next) {
@@ -42,13 +52,12 @@ function nextStep(step) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Build recap on step 4
   if (step === 4) buildRecap();
 }
 
 function prevStep(step) {
-  const current = document.querySelector('.form-step.active');
-  current.classList.remove('active');
+  const current = document.querySelector('.step-panel.active');
+  if (current) current.classList.remove('active');
   const prev = document.getElementById(`step-${step}`);
   if (prev) {
     prev.classList.add('active');
@@ -58,30 +67,27 @@ function prevStep(step) {
 }
 
 function updateStepIndicator(activeStep) {
-  document.querySelectorAll('.step').forEach((step, index) => {
-    const stepNum = index + 1;
-    step.classList.remove('active', 'completed');
-    if (stepNum < activeStep) step.classList.add('completed');
-    else if (stepNum === activeStep) step.classList.add('active');
+  document.querySelectorAll('.step-indicator-item').forEach((item) => {
+    const step = parseInt(item.dataset.step);
+    const numEl = item.querySelector('.step-num');
+    if (!numEl) return;
+
+    if (step < activeStep) {
+      // Completed
+      item.classList.add('done');
+      item.classList.remove('active');
+      numEl.innerHTML = `<svg class="w-4 h-4 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>`;
+    } else if (step === activeStep) {
+      item.classList.add('active');
+      item.classList.remove('done');
+      numEl.textContent = step;
+    } else {
+      item.classList.remove('active', 'done');
+      numEl.textContent = step;
+    }
   });
-}
-
-function showStepError(msg) {
-  let el = document.getElementById('step-error');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'step-error';
-    el.className = 'alert alert-error';
-    el.style.marginTop = '12px';
-    const active = document.querySelector('.form-step.active');
-    active.querySelector('.form-actions').before(el);
-  }
-  el.textContent = msg;
-}
-
-function clearStepError() {
-  const el = document.getElementById('step-error');
-  if (el) el.remove();
 }
 
 // ==========================================
@@ -92,104 +98,125 @@ function buildRecap() {
   const container = document.getElementById('recap-content');
   if (!container) return;
 
-  const getValue = (name) => {
+  const get = (name) => {
     const el = document.querySelector(`[name="${name}"]`);
-    return el ? el.value : '';
+    if (!el) return '';
+    if (el.type === 'radio') {
+      const checked = document.querySelector(`[name="${name}"]:checked`);
+      return checked ? checked.value : '';
+    }
+    return el.value || '';
   };
 
   const sections = [
     {
       title: 'Dirigeant',
       rows: [
-        ['Civilité', getValue('civilite')],
-        ['Nom', getValue('nom')],
-        ['Prénom', getValue('prenom')],
-        ['Nom de naissance', getValue('nom_jeune_fille')],
-        ['Date de naissance', getValue('date_naissance')],
-        ['Lieu de naissance', `${getValue('lieu_naissance')} (${getValue('departement_naissance')})`],
-        ['Nationalité', getValue('nationalite')],
-        ['Situation matrimoniale', getValue('situation_matrimoniale')],
+        ['Civilité', get('civilite')],
+        ['Prénom', get('prenom')],
+        ['Nom', get('nom')],
+        ['Nom de naissance', get('nom_jeune_fille')],
+        ['Date de naissance', get('date_naissance')],
+        ['Lieu de naissance', `${get('lieu_naissance')} (${get('departement_naissance')})`],
+        ['Nationalité', get('nationalite')],
+        ['Situation', get('situation_matrimoniale')],
       ]
     },
     {
       title: 'Adresse',
       rows: [
-        ['Adresse', getValue('adresse_rue')],
-        ['Code postal', getValue('adresse_cp')],
-        ['Ville', getValue('adresse_ville')],
-        ['Pays', getValue('adresse_pays')],
+        ['Rue', get('adresse_rue')],
+        ['Code postal', get('adresse_cp')],
+        ['Ville', get('adresse_ville')],
+        ['Pays', get('adresse_pays')],
       ]
     },
     {
       title: 'Filiation',
       rows: [
-        ['Père', `${getValue('prenom_pere')} ${getValue('nom_pere')}`],
-        ['Mère (nom naissance)', `${getValue('prenom_mere_naissance')} ${getValue('nom_mere')}`],
+        ['Père', `${get('prenom_pere')} ${get('nom_pere')}`],
+        ['Mère', `${get('prenom_mere_naissance')} ${get('nom_mere')}`],
       ]
     },
     {
       title: 'Société',
       rows: [
-        ['Dénomination', getValue('denomination_sociale')],
-        ['Siège social', `${getValue('siege_social_rue')}, ${getValue('siege_social_cp')} ${getValue('siege_social_ville')}`],
-        ['Capital social', `${getValue('capital_social')} €`],
-        ['Durée', `${getValue('duree')} ans`],
-        ['Clôture exercice', getValue('date_cloture_exercice')],
-        ['Régime fiscal', getValue('regime_fiscal')],
+        ['Dénomination', get('denomination_sociale')],
+        ['Siège', `${get('siege_social_rue')}, ${get('siege_social_cp')} ${get('siege_social_ville')}`],
+        ['Capital', get('capital_social') ? `${get('capital_social')} €` : ''],
+        ['Durée', get('duree') ? `${get('duree')} ans` : ''],
+        ['Clôture', get('date_cloture_exercice')],
+        ['Régime fiscal', get('regime_fiscal')],
       ]
     }
   ];
 
   let html = '';
   sections.forEach(section => {
-    html += `<div class="recap-section">`;
-    html += `<h4>${section.title}</h4>`;
-    section.rows.forEach(([label, value]) => {
-      if (value && value.trim()) {
-        html += `<div class="recap-row">
-          <span class="recap-label">${label}</span>
-          <span class="recap-value">${value}</span>
-        </div>`;
-      }
+    const validRows = section.rows.filter(([, v]) => v && v.trim() && v.trim() !== ' ()');
+    if (!validRows.length) return;
+    html += `<div>
+      <h4 class="text-xs font-semibold text-gold-700 uppercase tracking-wider mb-3">${section.title}</h4>
+      <div class="space-y-1.5">`;
+    validRows.forEach(([label, value]) => {
+      html += `<div class="flex gap-3">
+        <span class="text-xs text-slate-400 w-28 flex-shrink-0">${label}</span>
+        <span class="text-xs font-medium text-slate-900">${value}</span>
+      </div>`;
     });
-    html += '</div>';
+    html += '</div></div>';
   });
 
   container.innerHTML = html;
 }
 
 // ==========================================
-// Input validation feedback
+// Toast notifications
+// ==========================================
+
+function showToast(message, type = 'info') {
+  const existing = document.getElementById('toast-notification');
+  if (existing) existing.remove();
+
+  const colors = {
+    error: 'bg-red-600',
+    success: 'bg-emerald-600',
+    info: 'bg-slate-800'
+  };
+
+  const toast = document.createElement('div');
+  toast.id = 'toast-notification';
+  toast.className = `fixed bottom-6 right-6 z-50 ${colors[type]} text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 transition-all`;
+  toast.innerHTML = `<span>${message}</span>
+    <button onclick="this.parentElement.remove()" class="text-white/60 hover:text-white ml-2 text-lg leading-none">&times;</button>`;
+  document.body.appendChild(toast);
+
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
+}
+
+// ==========================================
+// DOM ready
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Remove red border on input
+
+  // Clear validation styling on input
   document.querySelectorAll('input, select, textarea').forEach(el => {
     el.addEventListener('input', () => {
       if (el.value.trim()) {
-        el.style.borderColor = '';
-        el.style.boxShadow = '';
+        el.classList.remove('border-red-400', 'bg-red-50');
+        el.classList.add('border-slate-200');
       }
     });
   });
 
-  // Auto-dismiss alerts after 5s
-  const alerts = document.querySelectorAll('.alert');
-  alerts.forEach(alert => {
+  // Auto-dismiss flash alerts
+  document.querySelectorAll('[data-auto-dismiss]').forEach(el => {
     setTimeout(() => {
-      alert.style.transition = 'opacity 0.5s';
-      alert.style.opacity = '0';
-      setTimeout(() => alert.remove(), 500);
+      el.style.transition = 'opacity 0.4s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 400);
     }, 5000);
   });
 
-  // File input label update
-  document.querySelectorAll('.file-input-label input[type="file"]').forEach(input => {
-    input.addEventListener('change', () => {
-      const display = input.closest('.file-input-wrapper').querySelector('.file-name-display');
-      if (display && input.files.length > 0) {
-        display.textContent = input.files[0].name;
-      }
-    });
-  });
 });

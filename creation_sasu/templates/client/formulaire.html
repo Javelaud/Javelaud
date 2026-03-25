@@ -1,303 +1,404 @@
 {% extends "base.html" %}
 {% block title %}Formulaire SASU — Javelaud{% endblock %}
 
+{% block head %}
+<style>
+  .step-panel { display: none; }
+  .step-panel.active { display: block; }
+  .step-indicator-item.active .step-num { background: #0f172a; color: #fff; }
+  .step-indicator-item.done .step-num { background: #059669; color: #fff; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div class="container">
-    <h1>Formulaire de création SASU</h1>
-    <p class="page-subtitle">Renseignez vos informations pour générer vos documents légaux</p>
+
+<!-- Header -->
+<div class="bg-navy-900 relative overflow-hidden">
+  <div class="absolute inset-0">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-gold-600/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+  </div>
+  <div class="relative max-w-7xl mx-auto px-6 py-12">
+    <p class="text-gold-500 text-xs font-semibold tracking-widest uppercase mb-2">Formulaire</p>
+    <h1 class="font-serif text-3xl sm:text-4xl text-white font-semibold">Création de votre SASU</h1>
+    <p class="text-white/50 text-sm mt-2">Renseignez vos informations pour générer vos documents légaux</p>
   </div>
 </div>
 
-<div class="container">
-  <div class="client-nav">
-    <a href="/client/dashboard" class="client-nav-item">Suivi</a>
-    <a href="/client/formulaire" class="client-nav-item active">Formulaire</a>
-    <a href="/client/documents" class="client-nav-item">Documents</a>
-  </div>
+<div class="max-w-3xl mx-auto px-6 py-10">
 
   {% if error %}
-  <div class="alert alert-error">{{ error }}</div>
+  <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-6 flex items-center gap-2">
+    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    </svg>
+    {{ error }}
+  </div>
   {% endif %}
 
-  <!-- Indicateur d'étapes -->
-  <div class="steps-indicator">
-    <div class="step active" data-step="1">
-      <span class="step-number">1</span>
-      <span class="step-label">Dirigeant</span>
+  <!-- Step indicator -->
+  <div class="flex items-center mb-10" id="step-indicator">
+    {% for label in ["Dirigeant", "Filiation", "Société", "Récapitulatif"] %}
+    <div class="step-indicator-item flex-1 flex flex-col items-center gap-2 {% if loop.first %}active{% endif %}" data-step="{{ loop.index }}">
+      <div class="step-num w-9 h-9 rounded-full border-2 border-slate-200 bg-white flex items-center justify-center text-sm font-bold text-slate-400 transition-all">
+        {{ loop.index }}
+      </div>
+      <span class="text-xs font-medium text-slate-500 hidden sm:block">{{ label }}</span>
     </div>
-    <div class="step-connector"></div>
-    <div class="step" data-step="2">
-      <span class="step-number">2</span>
-      <span class="step-label">Filiation</span>
-    </div>
-    <div class="step-connector"></div>
-    <div class="step" data-step="3">
-      <span class="step-number">3</span>
-      <span class="step-label">Société</span>
-    </div>
-    <div class="step-connector"></div>
-    <div class="step" data-step="4">
-      <span class="step-number">4</span>
-      <span class="step-label">Récapitulatif</span>
-    </div>
+    {% if not loop.last %}
+    <div class="flex-1 h-0.5 bg-slate-200 max-w-16 -mt-4"></div>
+    {% endif %}
+    {% endfor %}
   </div>
 
-  <form method="post" action="/client/formulaire" id="sasu-form">
+  <form method="post" action="/client/formulaire" id="sasu-form" novalidate>
 
-    <!-- ÉTAPE 1 : Dirigeant -->
-    <div class="form-step active" id="step-1">
-      <div class="card">
-        <h2 class="card-title">Informations du dirigeant / Associé unique</h2>
-        <p class="card-desc">Ces informations serviront à rédiger les statuts et l'attestation de non-condamnation.</p>
+    <!-- ====== ÉTAPE 1 : Dirigeant ====== -->
+    <div class="step-panel active" id="step-1">
+      <div class="bg-white rounded-2xl border border-slate-200 p-8 mb-4">
+        <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-navy-900/5 flex items-center justify-center">
+            <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-semibold text-slate-900">Identité du dirigeant</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Associé unique et Président de la SASU</p>
+          </div>
+        </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="civilite">Civilité <span class="required">*</span></label>
-            <select id="civilite" name="civilite" required>
+        <!-- Civilité -->
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-slate-700 mb-2">Civilité <span class="text-red-500">*</span></label>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2 px-4 py-3 border border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 has-[:checked]:border-navy-900 has-[:checked]:bg-navy-900/5 transition-all flex-1">
+              <input type="radio" name="civilite" value="M." required {% if dossier.civilite == "M." %}checked{% endif %} class="text-navy-900">
+              <span class="text-sm font-medium text-slate-700">M.</span>
+            </label>
+            <label class="flex items-center gap-2 px-4 py-3 border border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 has-[:checked]:border-navy-900 has-[:checked]:bg-navy-900/5 transition-all flex-1">
+              <input type="radio" name="civilite" value="Mme" required {% if dossier.civilite == "Mme" %}checked{% endif %} class="text-navy-900">
+              <span class="text-sm font-medium text-slate-700">Mme</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Prénom <span class="text-red-500">*</span></label>
+            <input type="text" name="prenom" required value="{{ dossier.prenom or '' }}" placeholder="Jean"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Nom de famille <span class="text-red-500">*</span></label>
+            <input type="text" name="nom" required value="{{ dossier.nom or '' }}" placeholder="DUPONT"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Nom de naissance <span class="text-slate-400 font-normal">(si différent)</span></label>
+          <input type="text" name="nom_jeune_fille" value="{{ dossier.nom_jeune_fille or '' }}" placeholder="Optionnel"
+                 class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Date de naissance <span class="text-red-500">*</span></label>
+            <input type="date" name="date_naissance" required value="{{ dossier.date_naissance or '' }}"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Commune de naissance <span class="text-red-500">*</span></label>
+            <input type="text" name="lieu_naissance" required value="{{ dossier.lieu_naissance or '' }}" placeholder="Paris"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Département de naissance <span class="text-red-500">*</span></label>
+            <input type="text" name="departement_naissance" required value="{{ dossier.departement_naissance or '' }}" placeholder="75"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Nationalité <span class="text-red-500">*</span></label>
+            <input type="text" name="nationalite" required value="{{ dossier.nationalite or 'Française' }}" placeholder="Française"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Situation matrimoniale <span class="text-red-500">*</span></label>
+            <select name="situation_matrimoniale" required
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
               <option value="">Choisir...</option>
-              <option value="M.">M.</option>
-              <option value="Mme">Mme</option>
+              {% for val in ["Célibataire","Marié(e)","Pacsé(e)","Divorcé(e)","Veuf(ve)"] %}
+              <option value="{{ val }}" {% if dossier.situation_matrimoniale == val %}selected{% endif %}>{{ val }}</option>
+              {% endfor %}
             </select>
           </div>
-        </div>
-
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="prenom">Prénom <span class="required">*</span></label>
-            <input type="text" id="prenom" name="prenom" required
-                   value="{{ dossier.prenom or '' }}" placeholder="Jean">
-          </div>
-          <div class="form-group">
-            <label for="nom">Nom de famille <span class="required">*</span></label>
-            <input type="text" id="nom" name="nom" required
-                   value="{{ dossier.nom or '' }}" placeholder="DUPONT">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Profession antérieure</label>
+            <input type="text" name="profession_anterieure" value="{{ dossier.profession_anterieure or '' }}" placeholder="Ex: Salarié"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="nom_jeune_fille">Nom de naissance (si différent)</label>
-            <input type="text" id="nom_jeune_fille" name="nom_jeune_fille"
-                   value="{{ dossier.nom_jeune_fille or '' }}" placeholder="Optionnel">
+        <!-- Adresse -->
+        <div class="pt-5 border-t border-slate-100 mt-2">
+          <h3 class="text-sm font-semibold text-gold-700 uppercase tracking-wider mb-4">Adresse personnelle</h3>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Adresse <span class="text-red-500">*</span></label>
+            <input type="text" name="adresse_rue" required value="{{ dossier.adresse_rue or '' }}" placeholder="12 rue de la Paix"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
           </div>
-        </div>
-
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="date_naissance">Date de naissance <span class="required">*</span></label>
-            <input type="date" id="date_naissance" name="date_naissance" required
-                   value="{{ dossier.date_naissance or '' }}">
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Code postal <span class="text-red-500">*</span></label>
+              <input type="text" name="adresse_cp" required value="{{ dossier.adresse_cp or '' }}" placeholder="75001"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Ville <span class="text-red-500">*</span></label>
+              <input type="text" name="adresse_ville" required value="{{ dossier.adresse_ville or '' }}" placeholder="Paris"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
           </div>
-          <div class="form-group">
-            <label for="lieu_naissance">Commune de naissance <span class="required">*</span></label>
-            <input type="text" id="lieu_naissance" name="lieu_naissance" required
-                   value="{{ dossier.lieu_naissance or '' }}" placeholder="Paris">
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Pays <span class="text-red-500">*</span></label>
+            <input type="text" name="adresse_pays" required value="{{ dossier.adresse_pays or 'France' }}" placeholder="France"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
           </div>
-        </div>
-
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="departement_naissance">Département de naissance <span class="required">*</span></label>
-            <input type="text" id="departement_naissance" name="departement_naissance" required
-                   value="{{ dossier.departement_naissance or '' }}" placeholder="75">
-          </div>
-          <div class="form-group">
-            <label for="nationalite">Nationalité <span class="required">*</span></label>
-            <input type="text" id="nationalite" name="nationalite" required
-                   value="{{ dossier.nationalite or 'Française' }}" placeholder="Française">
-          </div>
-        </div>
-
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="situation_matrimoniale">Situation matrimoniale <span class="required">*</span></label>
-            <select id="situation_matrimoniale" name="situation_matrimoniale" required>
-              <option value="">Choisir...</option>
-              <option value="Célibataire" {% if dossier.situation_matrimoniale == "Célibataire" %}selected{% endif %}>Célibataire</option>
-              <option value="Marié(e)" {% if dossier.situation_matrimoniale == "Marié(e)" %}selected{% endif %}>Marié(e)</option>
-              <option value="Pacsé(e)" {% if dossier.situation_matrimoniale == "Pacsé(e)" %}selected{% endif %}>Pacsé(e)</option>
-              <option value="Divorcé(e)" {% if dossier.situation_matrimoniale == "Divorcé(e)" %}selected{% endif %}>Divorcé(e)</option>
-              <option value="Veuf(ve)" {% if dossier.situation_matrimoniale == "Veuf(ve)" %}selected{% endif %}>Veuf(ve)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="profession_anterieure">Profession antérieure</label>
-            <input type="text" id="profession_anterieure" name="profession_anterieure"
-                   value="{{ dossier.profession_anterieure or '' }}" placeholder="Ex: Salarié, Étudiant...">
-          </div>
-        </div>
-
-        <h3 class="section-subtitle">Adresse personnelle</h3>
-        <div class="form-group">
-          <label for="adresse_rue">Adresse <span class="required">*</span></label>
-          <input type="text" id="adresse_rue" name="adresse_rue" required
-                 value="{{ dossier.adresse_rue or '' }}" placeholder="12 rue de la Paix">
-        </div>
-        <div class="form-row three-cols">
-          <div class="form-group">
-            <label for="adresse_cp">Code postal <span class="required">*</span></label>
-            <input type="text" id="adresse_cp" name="adresse_cp" required
-                   value="{{ dossier.adresse_cp or '' }}" placeholder="75001" maxlength="10">
-          </div>
-          <div class="form-group" style="grid-column: span 2;">
-            <label for="adresse_ville">Ville <span class="required">*</span></label>
-            <input type="text" id="adresse_ville" name="adresse_ville" required
-                   value="{{ dossier.adresse_ville or '' }}" placeholder="Paris">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="adresse_pays">Pays <span class="required">*</span></label>
-          <input type="text" id="adresse_pays" name="adresse_pays" required
-                 value="{{ dossier.adresse_pays or 'France' }}" placeholder="France">
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-primary" onclick="nextStep(2)">Suivant →</button>
+      <div class="flex justify-end">
+        <button type="button" onclick="nextStep(2)"
+                class="bg-navy-900 hover:bg-slate-800 text-white font-semibold px-8 py-3 rounded-xl text-sm flex items-center gap-2 transition-colors">
+          Suivant — Filiation
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <!-- ÉTAPE 2 : Filiation -->
-    <div class="form-step" id="step-2">
-      <div class="card">
-        <h2 class="card-title">Filiation</h2>
-        <p class="card-desc">Ces informations sont requises pour l'attestation de non-condamnation (art. L123-11-1 du Code de commerce).</p>
-
-        <h3 class="section-subtitle">Père</h3>
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="prenom_pere">Prénom du père <span class="required">*</span></label>
-            <input type="text" id="prenom_pere" name="prenom_pere" required
-                   value="{{ dossier.prenom_pere or '' }}" placeholder="Jean">
+    <!-- ====== ÉTAPE 2 : Filiation ====== -->
+    <div class="step-panel" id="step-2">
+      <div class="bg-white rounded-2xl border border-slate-200 p-8 mb-4">
+        <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-navy-900/5 flex items-center justify-center">
+            <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>
+            </svg>
           </div>
-          <div class="form-group">
-            <label for="nom_pere">Nom du père <span class="required">*</span></label>
-            <input type="text" id="nom_pere" name="nom_pere" required
-                   value="{{ dossier.nom_pere or '' }}" placeholder="DUPONT">
+          <div>
+            <h2 class="font-semibold text-slate-900">Déclaration de filiation</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Requis pour l'attestation de non-condamnation (art. L.123-11-1 C.com)</p>
           </div>
         </div>
 
-        <h3 class="section-subtitle">Mère</h3>
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="prenom_mere">Prénom de la mère <span class="required">*</span></label>
-            <input type="text" id="prenom_mere" name="prenom_mere_naissance" required
-                   value="{{ dossier.prenom_mere_naissance or '' }}" placeholder="Marie">
+        <div class="bg-slate-50 rounded-xl p-4 mb-6 text-xs text-slate-500 border border-slate-100">
+          Ces informations sont requises par la loi pour établir votre attestation de non-condamnation
+          auprès du greffe du Tribunal de Commerce.
+        </div>
+
+        <div class="mb-6">
+          <h3 class="text-sm font-semibold text-gold-700 uppercase tracking-wider mb-4">Père</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Prénom <span class="text-red-500">*</span></label>
+              <input type="text" name="prenom_pere" required value="{{ dossier.prenom_pere or '' }}" placeholder="Jean"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Nom <span class="text-red-500">*</span></label>
+              <input type="text" name="nom_pere" required value="{{ dossier.nom_pere or '' }}" placeholder="DUPONT"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
           </div>
-          <div class="form-group">
-            <label for="nom_mere">Nom de naissance de la mère <span class="required">*</span></label>
-            <input type="text" id="nom_mere" name="nom_mere" required
-                   value="{{ dossier.nom_mere or '' }}" placeholder="MARTIN">
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-gold-700 uppercase tracking-wider mb-4">Mère</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Prénom <span class="text-red-500">*</span></label>
+              <input type="text" name="prenom_mere_naissance" required value="{{ dossier.prenom_mere_naissance or '' }}" placeholder="Marie"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Nom de naissance <span class="text-red-500">*</span></label>
+              <input type="text" name="nom_mere" required value="{{ dossier.nom_mere or '' }}" placeholder="MARTIN"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" onclick="prevStep(1)">← Précédent</button>
-        <button type="button" class="btn btn-primary" onclick="nextStep(3)">Suivant →</button>
+      <div class="flex justify-between">
+        <button type="button" onclick="prevStep(1)"
+                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium px-6 py-3 rounded-xl text-sm flex items-center gap-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Retour
+        </button>
+        <button type="button" onclick="nextStep(3)"
+                class="bg-navy-900 hover:bg-slate-800 text-white font-semibold px-8 py-3 rounded-xl text-sm flex items-center gap-2 transition-colors">
+          Suivant — Société
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <!-- ÉTAPE 3 : Société -->
-    <div class="form-step" id="step-3">
-      <div class="card">
-        <h2 class="card-title">Informations de la société</h2>
-        <p class="card-desc">Caractéristiques de votre future SASU.</p>
-
-        <div class="form-group">
-          <label for="denomination_sociale">Dénomination sociale <span class="required">*</span></label>
-          <input type="text" id="denomination_sociale" name="denomination_sociale" required
-                 value="{{ dossier.denomination_sociale or '' }}" placeholder="MA SOCIÉTÉ SAS">
-          <small class="form-hint">Vérifiez la disponibilité du nom sur inpi.fr avant de soumettre.</small>
-        </div>
-
-        <h3 class="section-subtitle">Siège social</h3>
-        <div class="form-group">
-          <label for="siege_social_rue">Adresse du siège <span class="required">*</span></label>
-          <input type="text" id="siege_social_rue" name="siege_social_rue" required
-                 value="{{ dossier.siege_social_rue or '' }}" placeholder="12 rue de la Paix">
-        </div>
-        <div class="form-row three-cols">
-          <div class="form-group">
-            <label for="siege_social_cp">Code postal <span class="required">*</span></label>
-            <input type="text" id="siege_social_cp" name="siege_social_cp" required
-                   value="{{ dossier.siege_social_cp or '' }}" placeholder="75001" maxlength="10">
+    <!-- ====== ÉTAPE 3 : Société ====== -->
+    <div class="step-panel" id="step-3">
+      <div class="bg-white rounded-2xl border border-slate-200 p-8 mb-4">
+        <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-navy-900/5 flex items-center justify-center">
+            <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
           </div>
-          <div class="form-group" style="grid-column: span 2;">
-            <label for="siege_social_ville">Ville <span class="required">*</span></label>
-            <input type="text" id="siege_social_ville" name="siege_social_ville" required
-                   value="{{ dossier.siege_social_ville or '' }}" placeholder="Paris">
+          <div>
+            <h2 class="font-semibold text-slate-900">Informations de la société</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Caractéristiques de votre future SASU</p>
           </div>
         </div>
 
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="capital_social">Capital social (€) <span class="required">*</span></label>
-            <input type="number" id="capital_social" name="capital_social" required min="1" step="0.01"
-                   value="{{ dossier.capital_social or '' }}" placeholder="1000">
-            <small class="form-hint">Minimum légal : 1 €</small>
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Dénomination sociale <span class="text-red-500">*</span></label>
+          <input type="text" name="denomination_sociale" required value="{{ dossier.denomination_sociale or '' }}" placeholder="MA SOCIÉTÉ SAS"
+                 class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          <p class="text-xs text-slate-400 mt-1.5">Vérifiez la disponibilité du nom sur <a href="https://data.inpi.fr" target="_blank" class="text-gold-600 hover:underline">data.inpi.fr</a></p>
+        </div>
+
+        <div class="pt-5 border-t border-slate-100 mt-2 mb-5">
+          <h3 class="text-sm font-semibold text-gold-700 uppercase tracking-wider mb-4">Siège social</h3>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Adresse <span class="text-red-500">*</span></label>
+            <input type="text" name="siege_social_rue" required value="{{ dossier.siege_social_rue or '' }}" placeholder="12 rue de la Paix"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
           </div>
-          <div class="form-group">
-            <label for="duree">Durée de la société (années) <span class="required">*</span></label>
-            <input type="number" id="duree" name="duree" required min="1" max="99"
-                   value="{{ dossier.duree or 99 }}" placeholder="99">
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Code postal <span class="text-red-500">*</span></label>
+              <input type="text" name="siege_social_cp" required value="{{ dossier.siege_social_cp or '' }}" placeholder="75001"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Ville <span class="text-red-500">*</span></label>
+              <input type="text" name="siege_social_ville" required value="{{ dossier.siege_social_ville or '' }}" placeholder="Paris"
+                     class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            </div>
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="objet_social">Objet social <span class="required">*</span></label>
-          <textarea id="objet_social" name="objet_social" required rows="4"
-                    placeholder="La société a pour objet : toutes activités de conseil, développement informatique, commercialisation de produits et services numériques, et plus généralement toutes opérations commerciales, industrielles ou financières...">{{ dossier.objet_social or '' }}</textarea>
-          <small class="form-hint">Décrivez l'activité principale et accessoire de la société.</small>
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Capital social (€) <span class="text-red-500">*</span></label>
+            <input type="number" name="capital_social" required min="1" step="0.01" value="{{ dossier.capital_social or '' }}" placeholder="1000"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+            <p class="text-xs text-slate-400 mt-1.5">Minimum légal : 1 €</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Durée (années) <span class="text-red-500">*</span></label>
+            <input type="number" name="duree" required min="1" max="99" value="{{ dossier.duree or 99 }}"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
+          </div>
         </div>
 
-        <div class="form-row two-cols">
-          <div class="form-group">
-            <label for="date_cloture_exercice">Date de clôture de l'exercice <span class="required">*</span></label>
-            <select id="date_cloture_exercice" name="date_cloture_exercice" required>
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Objet social <span class="text-red-500">*</span></label>
+          <textarea name="objet_social" required rows="4"
+                    placeholder="La société a pour objet : toutes activités de conseil, développement informatique, commercialisation de produits et services numériques..."
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all resize-none">{{ dossier.objet_social or '' }}</textarea>
+          <p class="text-xs text-slate-400 mt-1.5">Décrivez l'activité principale et les activités connexes de la société.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Date de clôture de l'exercice</label>
+            <select name="date_cloture_exercice"
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
               <option value="31/12" {% if dossier.date_cloture_exercice == "31/12" or not dossier.date_cloture_exercice %}selected{% endif %}>31 décembre</option>
               <option value="31/03" {% if dossier.date_cloture_exercice == "31/03" %}selected{% endif %}>31 mars</option>
               <option value="30/06" {% if dossier.date_cloture_exercice == "30/06" %}selected{% endif %}>30 juin</option>
               <option value="30/09" {% if dossier.date_cloture_exercice == "30/09" %}selected{% endif %}>30 septembre</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="regime_fiscal">Régime fiscal</label>
-            <select id="regime_fiscal" name="regime_fiscal">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Régime fiscal</label>
+            <select name="regime_fiscal"
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 outline-none transition-all">
               <option value="IS" {% if dossier.regime_fiscal != "IR" %}selected{% endif %}>Impôt sur les Sociétés (IS)</option>
-              <option value="IR" {% if dossier.regime_fiscal == "IR" %}selected{% endif %}>Impôt sur le Revenu (IR) — option temporaire</option>
+              <option value="IR" {% if dossier.regime_fiscal == "IR" %}selected{% endif %}>IR (option temporaire)</option>
             </select>
-            <small class="form-hint">La SASU est soumise à l'IS par défaut.</small>
+            <p class="text-xs text-slate-400 mt-1.5">IS par défaut pour une SASU</p>
           </div>
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" onclick="prevStep(2)">← Précédent</button>
-        <button type="button" class="btn btn-primary" onclick="nextStep(4)">Récapitulatif →</button>
+      <div class="flex justify-between">
+        <button type="button" onclick="prevStep(2)"
+                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium px-6 py-3 rounded-xl text-sm flex items-center gap-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Retour
+        </button>
+        <button type="button" onclick="nextStep(4)"
+                class="bg-navy-900 hover:bg-slate-800 text-white font-semibold px-8 py-3 rounded-xl text-sm flex items-center gap-2 transition-colors">
+          Récapitulatif
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <!-- ÉTAPE 4 : Récapitulatif -->
-    <div class="form-step" id="step-4">
-      <div class="card">
-        <h2 class="card-title">Récapitulatif</h2>
-        <p class="card-desc">Vérifiez vos informations avant de soumettre votre dossier.</p>
-        <div id="recap-content" class="recap-grid"></div>
+    <!-- ====== ÉTAPE 4 : Récapitulatif ====== -->
+    <div class="step-panel" id="step-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-8 mb-4">
+        <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-semibold text-slate-900">Récapitulatif</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Vérifiez vos informations avant de soumettre</p>
+          </div>
+        </div>
+        <div id="recap-content" class="grid grid-cols-2 gap-6"></div>
       </div>
 
-      <div class="card" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
-        <p style="color: #92400e; margin: 0;">
-          <strong>Important :</strong> En soumettant ce formulaire, vous certifiez que les informations
-          fournies sont exactes et sincères. Ces données serviront à la rédaction de vos documents légaux.
-        </p>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex gap-3">
+        <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-amber-800 text-sm">En soumettant ce formulaire, vous certifiez que les informations fournies sont exactes et sincères. Ces données serviront à la rédaction de vos documents légaux.</p>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" onclick="prevStep(3)">← Modifier</button>
-        <button type="submit" class="btn btn-success">
-          ✓ Soumettre mon dossier
+      <div class="flex justify-between">
+        <button type="button" onclick="prevStep(3)"
+                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium px-6 py-3 rounded-xl text-sm flex items-center gap-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Modifier
+        </button>
+        <button type="submit"
+                class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-8 py-3 rounded-xl text-sm flex items-center gap-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Soumettre mon dossier
         </button>
       </div>
     </div>

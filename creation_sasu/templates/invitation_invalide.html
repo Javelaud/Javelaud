@@ -1,26 +1,32 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lien invalide — Javelaud</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['Cormorant Garamond','serif']},colors:{navy:{900:'#0f172a',950:'#080d1a'},gold:{600:'#c9841f'}}}}}</script>
+  <style>body{font-family:'Inter',sans-serif;}</style>
 </head>
-<body class="auth-body">
-  <div class="auth-container">
-    <div class="auth-card" style="text-align:center;">
-      <div class="auth-header">
-        <h1 class="auth-logo">Javelaud</h1>
-      </div>
-      <div class="alert alert-error" style="margin-bottom:20px;">
-        {% if expired %}
-          Ce lien d'invitation a expiré. Veuillez contacter votre expert juridique pour recevoir un nouveau lien.
-        {% else %}
-          Ce lien d'invitation est invalide ou a déjà été utilisé.
-        {% endif %}
-      </div>
-      <a href="/login" class="btn btn-primary">Aller à la connexion</a>
+<body class="h-full bg-navy-950 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-md w-full text-center">
+    <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.924-.833-2.694 0L3.197 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+      </svg>
     </div>
+    <h2 class="font-serif text-2xl text-slate-900 font-semibold mb-3">Lien invalide</h2>
+    <p class="text-slate-500 text-sm mb-6">
+      {% if expired %}
+        Ce lien d'invitation a expiré (valable 72h). Veuillez contacter votre expert juridique pour en recevoir un nouveau.
+      {% else %}
+        Ce lien d'invitation est invalide ou a déjà été utilisé.
+      {% endif %}
+    </p>
+    <a href="/login" class="inline-flex items-center gap-2 bg-navy-900 text-white font-semibold px-6 py-3 rounded-xl text-sm hover:bg-slate-800 transition-colors">
+      Aller à la connexion
+    </a>
   </div>
 </body>
 </html>
