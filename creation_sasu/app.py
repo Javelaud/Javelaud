@@ -1,5 +1,6 @@
 import os
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -33,7 +34,14 @@ from models import (
     User,
 )
 
-app = FastAPI(title="Création SASU — Javelaud")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    _seed_expert_if_none()
+    yield
+
+
+app = FastAPI(title="Création SASU — Javelaud", lifespan=lifespan)
 
 BASE_DIR = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -42,12 +50,6 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 # Jinja2 globals
 templates.env.globals["STATUS_LABELS"] = STATUS_LABELS
 templates.env.globals["STATUS_ORDER"] = STATUS_ORDER
-
-
-@app.on_event("startup")
-def on_startup():
-    init_db()
-    _seed_expert_if_none()
 
 
 def _seed_expert_if_none():
