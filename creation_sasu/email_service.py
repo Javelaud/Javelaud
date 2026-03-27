@@ -23,11 +23,13 @@ def _send_email(to: str, subject: str, html_body: str) -> None:
     msg["To"] = to
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
         server.ehlo()
         server.starttls()
+        server.ehlo()
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(SMTP_FROM, to, msg.as_string())
+    print(f"[EMAIL] Envoyé à {to} | Sujet: {subject}")
 
 
 def send_invitation_email(to_email: str, prenom: str, token: str) -> None:

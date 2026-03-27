@@ -592,11 +592,15 @@ def expert_resend_invitation(
     client.invitation_expires = datetime.utcnow() + timedelta(hours=72)
     client.invitation_used = False
     db.commit()
+    email_error = None
     try:
         email_service.send_invitation_email(client.email, client.prenom, new_token)
     except Exception as e:
         print(f"[EMAIL ERROR] {e}")
-    return RedirectResponse(f"/expert/dossiers/{dossier_id}?success=Invitation+renvoyée+à+{client.email}", status_code=302)
+        email_error = str(e)
+    if email_error:
+        return RedirectResponse(f"/expert/dossiers/{dossier_id}?error=Erreur+email+:+{email_error[:80]}", status_code=302)
+    return RedirectResponse(f"/expert/dossiers/{dossier_id}?success=Invitation+renvoyée", status_code=302)
 
 
 @app.post("/expert/dossiers/{dossier_id}/notes")
