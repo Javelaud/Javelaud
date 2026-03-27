@@ -1,35 +1,24 @@
 import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import resend
 
-
-SMTP_HOST = os.getenv("SMTP_HOST", "")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-SMTP_FROM = os.getenv("SMTP_FROM", "Javelaud <no-reply@javelaud.fr>")
+resend.api_key = os.getenv("RESEND_API_KEY", "")
+RESEND_FROM = os.getenv("RESEND_FROM", "Javelaud <onboarding@resend.dev>")
 APP_URL = os.getenv("APP_URL", "http://localhost:8000")
 
 
 def _send_email(to: str, subject: str, html_body: str) -> None:
-    if not SMTP_HOST or not SMTP_USER:
-        print(f"[EMAIL] (SMTP non configuré) À: {to} | Sujet: {subject}")
+    if not resend.api_key:
+        print(f"[EMAIL] (RESEND_API_KEY non configuré) À: {to} | Sujet: {subject}")
         return
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = SMTP_FROM
-    msg["To"] = to
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
-
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-        server.ehlo()
-        server.starttls()
-        server.ehlo()
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.sendmail(SMTP_FROM, to, msg.as_string())
-    print(f"[EMAIL] Envoyé à {to} | Sujet: {subject}")
+    params = {
+        "from": RESEND_FROM,
+        "to": [to],
+        "subject": subject,
+        "html": html_body,
+    }
+    response = resend.Emails.send(params)
+    print(f"[EMAIL] Envoyé à {to} | id={response.get('id', '?')}")
 
 
 def send_invitation_email(to_email: str, prenom: str, token: str) -> None:
