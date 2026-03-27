@@ -222,31 +222,27 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
     # Utiliser le beta endpoint si l'historique contient des documents
     uses_files = any(isinstance(msg.get("content"), list) for msg in history)
 
-    stream_kwargs = dict(
-        model="claude-opus-4-6",
-        max_tokens=4096,
-        system=system_prompt,
-        messages=history,
-    )
+    # Modèles par ordre de préférence : Opus d'abord, Sonnet en fallback
+    models_to_try = ["claude-opus-4-6", "claude-sonnet-4-6"]
 
-    max_attempts = 3
-    delay = 2
-    last_error: Exception | None = None
-
-    for attempt in range(max_attempts):
+    for model in models_to_try:
+        stream_kwargs = dict(
+            model=model,
+            max_tokens=4096,
+            system=system_prompt,
+            messages=history,
+        )
         try:
             async for text in _do_stream(client, uses_files, stream_kwargs, assistant_parts):
                 escaped = text.replace("\n", "\\n")
                 yield f"data: {escaped}\n\n"
             break  # succès
         except anthropic.APIStatusError as e:
-            last_error = e
-            if e.status_code == 529 and attempt < max_attempts - 1:
-                await asyncio.sleep(delay)
-                delay *= 2
+            if e.status_code == 529 and model != models_to_try[-1]:
+                # Essayer le modèle suivant immédiatement
                 assistant_parts.clear()
                 continue
-            # Erreur non récupérable ou dernière tentative
+            # Erreur non récupérable ou tous les modèles épuisés
             if e.status_code == 529:
                 msg = "Le service IA est momentanément surchargé. Veuillez réessayer dans quelques instants."
             elif e.status_code == 401:
@@ -261,7 +257,6 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
             yield "data: [DONE]\n\n"
             return
         except Exception as e:
-            last_error = e
             import traceback
             traceback.print_exc()
             yield "data: ❌ Une erreur inattendue s'est produite. Veuillez réessayer.\n\n"
