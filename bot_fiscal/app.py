@@ -188,6 +188,21 @@ async def send_message(session_id: str, body: MessageRequest):
     )
 
 
+async def _do_stream(client, uses_files: bool, stream_kwargs: dict, assistant_parts: list[str]):
+    """Effectue le streaming et yield les tokens."""
+    if uses_files:
+        stream_kwargs["betas"] = ["files-api-2025-04-14"]
+        async with client.beta.messages.stream(**stream_kwargs) as stream:
+            async for text in stream.text_stream:
+                assistant_parts.append(text)
+                yield text
+    else:
+        async with client.messages.stream(**stream_kwargs) as stream:
+            async for text in stream.text_stream:
+                assistant_parts.append(text)
+                yield text
+
+
 async def _stream_response(session_id: str, history: list[dict], question: str):
     """Génère la réponse en streaming et la sauvegarde dans l'historique."""
     client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
@@ -207,36 +222,53 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
     # Utiliser le beta endpoint si l'historique contient des documents
     uses_files = any(isinstance(msg.get("content"), list) for msg in history)
 
-    try:
-        stream_kwargs = dict(
-            model="claude-opus-4-6",
-            max_tokens=4096,
-            system=system_prompt,
-            messages=history,
-        )
-        if uses_files:
-            stream_kwargs["betas"] = ["files-api-2025-04-14"]
-            async with client.beta.messages.stream(**stream_kwargs) as stream:
-                async for text in stream.text_stream:
-                    assistant_parts.append(text)
-                    escaped = text.replace("\n", "\\n")
-                    yield f"data: {escaped}\n\n"
-        else:
-            async with client.messages.stream(**stream_kwargs) as stream:
-                async for text in stream.text_stream:
-                    assistant_parts.append(text)
-                    escaped = text.replace("\n", "\\n")
-                    yield f"data: {escaped}\n\n"
+    stream_kwargs = dict(
+        model="claude-opus-4-6",
+        max_tokens=4096,
+        system=system_prompt,
+        messages=history,
+    )
 
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        yield f"data: ❌ **Erreur :** {e}\n\n"
-        # Retirer le dernier message utilisateur en cas d'erreur
-        if sessions.get(session_id) and sessions[session_id][-1]["role"] == "user":
-            sessions[session_id].pop()
-        yield "data: [DONE]\n\n"
-        return
+    max_attempts = 3
+    delay = 2
+    last_error: Exception | None = None
+
+    for attempt in range(max_attempts):
+        try:
+            async for text in _do_stream(client, uses_files, stream_kwargs, assistant_parts):
+                escaped = text.replace("\n", "\\n")
+                yield f"data: {escaped}\n\n"
+            break  # succès
+        except anthropic.APIStatusError as e:
+            last_error = e
+            if e.status_code == 529 and attempt < max_attempts - 1:
+                await asyncio.sleep(delay)
+                delay *= 2
+                assistant_parts.clear()
+                continue
+            # Erreur non récupérable ou dernière tentative
+            if e.status_code == 529:
+                msg = "Le service IA est momentanément surchargé. Veuillez réessayer dans quelques instants."
+            elif e.status_code == 401:
+                msg = "Clé API invalide. Contactez l'administrateur."
+            elif e.status_code == 429:
+                msg = "Quota d'API dépassé. Veuillez réessayer dans quelques minutes."
+            else:
+                msg = f"Erreur API ({e.status_code}). Veuillez réessayer."
+            yield f"data: ❌ {msg}\n\n"
+            if sessions.get(session_id) and sessions[session_id][-1]["role"] == "user":
+                sessions[session_id].pop()
+            yield "data: [DONE]\n\n"
+            return
+        except Exception as e:
+            last_error = e
+            import traceback
+            traceback.print_exc()
+            yield "data: ❌ Une erreur inattendue s'est produite. Veuillez réessayer.\n\n"
+            if sessions.get(session_id) and sessions[session_id][-1]["role"] == "user":
+                sessions[session_id].pop()
+            yield "data: [DONE]\n\n"
+            return
 
     # Sauvegarder la réponse de l'assistant dans l'historique
     if assistant_parts and session_id in sessions:
