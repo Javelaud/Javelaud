@@ -378,6 +378,19 @@
               {{ "Oui" if dossier.client.is_active else "Non — invitation en attente" }}
             </p>
           </div>
+          {% if not dossier.client.is_active %}
+          <div class="pt-2">
+            <form method="post" action="/expert/dossiers/{{ dossier.id }}/resend-invitation">
+              <button type="submit"
+                      class="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Renvoyer l'invitation
+              </button>
+            </form>
+          </div>
+          {% endif %}
           <div>
             <p class="text-white/40 uppercase tracking-wide text-xs font-medium">Dossier créé le</p>
             <p class="text-white/70 mt-0.5">{{ dossier.created_at.strftime("%d/%m/%Y") if dossier.created_at else "—" }}</p>

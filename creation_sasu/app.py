@@ -518,6 +518,8 @@ def expert_dossier_detail(
     dossier_id: int,
     user: User = Depends(auth.require_expert),
     db: Session = Depends(get_db),
+    success: Optional[str] = None,
+    error: Optional[str] = None,
 ):
     dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
     if not dossier:
@@ -529,8 +531,8 @@ def expert_dossier_detail(
             "user": user,
             "dossier": dossier,
             "history": sorted(dossier.history, key=lambda h: h.changed_at, reverse=True),
-            "success": None,
-            "error": None,
+            "success": success,
+            "error": error,
         },
     )
 
@@ -571,6 +573,30 @@ def expert_update_status(
         print(f"[EMAIL ERROR] {e}")
 
     return RedirectResponse(f"/expert/dossiers/{dossier_id}", status_code=302)
+
+
+@app.post("/expert/dossiers/{dossier_id}/resend-invitation")
+def expert_resend_invitation(
+    dossier_id: int,
+    user: User = Depends(auth.require_expert),
+    db: Session = Depends(get_db),
+):
+    dossier = db.query(Dossier).filter(Dossier.id == dossier_id, Dossier.expert_id == user.id).first()
+    if not dossier:
+        raise HTTPException(status_code=404, detail="Dossier introuvable")
+    client = dossier.client
+    if client.is_active:
+        return RedirectResponse(f"/expert/dossiers/{dossier_id}?error=Le+client+a+déjà+activé+son+compte", status_code=302)
+    new_token = str(uuid.uuid4())
+    client.invitation_token = new_token
+    client.invitation_expires = datetime.utcnow() + timedelta(hours=72)
+    client.invitation_used = False
+    db.commit()
+    try:
+        email_service.send_invitation_email(client.email, client.prenom, new_token)
+    except Exception as e:
+        print(f"[EMAIL ERROR] {e}")
+    return RedirectResponse(f"/expert/dossiers/{dossier_id}?success=Invitation+renvoyée+à+{client.email}", status_code=302)
 
 
 @app.post("/expert/dossiers/{dossier_id}/notes")
