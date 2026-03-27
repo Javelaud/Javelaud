@@ -3,7 +3,7 @@ import resend
 
 resend.api_key = os.getenv("RESEND_API_KEY", "")
 RESEND_FROM = os.getenv("RESEND_FROM", "Javelaud <onboarding@resend.dev>")
-APP_URL = os.getenv("APP_URL", "http://localhost:8000")
+APP_URL = os.getenv("APP_URL", "http://localhost:8000").rstrip("/")
 
 
 def _send_email(to: str, subject: str, html_body: str) -> None:
