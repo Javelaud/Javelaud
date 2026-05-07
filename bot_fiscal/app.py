@@ -223,7 +223,7 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
     uses_files = any(isinstance(msg.get("content"), list) for msg in history)
 
     # Modèles par ordre de préférence : Opus d'abord, Sonnet en fallback
-    models_to_try = ["claude-opus-4-6", "claude-sonnet-4-6"]
+    models_to_try = ["claude-opus-4-7", "claude-sonnet-4-6"]
 
     for model in models_to_try:
         stream_kwargs = dict(
