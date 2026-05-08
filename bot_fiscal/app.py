@@ -225,9 +225,9 @@ async def _stream_response(session_id: str, history: list[dict], question: str, 
 
     # Recherche approfondie : Opus en primaire ; sinon Sonnet pour économiser. Fallback en cas de 529.
     if deep_search:
-        models_to_try = ["claude-opus-4-7", "claude-sonnet-4-7"]
+        models_to_try = ["claude-opus-4-7", "claude-sonnet-4-6"]
     else:
-        models_to_try = ["claude-sonnet-4-7", "claude-opus-4-7"]
+        models_to_try = ["claude-sonnet-4-6", "claude-opus-4-7"]
 
     for model in models_to_try:
         stream_kwargs = dict(
