@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Création SASU — Javelaud{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            gold: {
+              50:  '#fdf9ef',
+              100: '#faf0d4',
+              200: '#f4dfa4',
+              300: '#ecc96b',
+              400: '#e3b143',
+              500: '#d4952a',
+              600: '#c9841f',
+              700: '#a6681b',
+              800: '#87531e',
+              900: '#6f451d',
+            },
+            navy: {
+              50:  '#f0f4ff',
+              100: '#e0e9ff',
+              200: '#c7d5fe',
+              300: '#a5b7fc',
+              400: '#8191f8',
+              500: '#6671f1',
+              600: '#5254e5',
+              700: '#4543ca',
+              800: '#3938a3',
+              900: '#0f172a',
+              950: '#080d1a',
+            }
+          },
+          boxShadow: {
+            'gold': '0 4px 24px rgba(212, 149, 42, 0.15)',
+            'card': '0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .font-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+    /* ShadCN-style focus rings */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px #d4952a;
+    }
+
+    /* Smooth transitions */
+    * { transition-property: color, background-color, border-color, box-shadow;
+        transition-duration: 150ms; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* Timeline connector */
+    .timeline-line::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: -8px;
+      width: 2px;
+      background: #e2e8f0;
+    }
+    .timeline-line.done::before { background: #d4952a; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="h-full bg-slate-50 antialiased">
+
+  <!-- NAVBAR -->
+  {% if user is defined and user %}
+  <nav class="bg-navy-900 border-b border-white/5 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gold-600 flex items-center justify-center">
+          <span class="text-white font-serif font-bold text-sm">J</span>
+        </div>
+        <div>
+          <span class="text-white font-semibold tracking-wide text-sm">Javelaud</span>
+          <span class="text-white/40 text-xs block leading-none">Création de société</span>
+        </div>
+      </a>
+
+      <!-- User -->
+      <div class="flex items-center gap-4">
+        {% if user.role == "expert" %}
+        <a href="/expert/dashboard"
+           class="text-white/70 hover:text-white text-sm font-medium transition-colors">
+          Tableau de bord
+        </a>
+        <a href="/expert/dossiers/create"
+           class="bg-gold-600 hover:bg-gold-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          + Nouveau dossier
+        </a>
+        {% else %}
+        <a href="/client/dashboard"
+           class="text-white/70 hover:text-white text-sm font-medium transition-colors">
+          Mon dossier
+        </a>
+        <a href="/client/documents"
+           class="text-white/70 hover:text-white text-sm font-medium transition-colors">
+          Documents
+        </a>
+        {% endif %}
+
+        <div class="w-px h-6 bg-white/10"></div>
+
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+            <span class="text-white text-xs font-semibold">
+              {{ user.prenom[0] }}{{ user.nom[0] }}
+            </span>
+          </div>
+          <div class="hidden sm:block">
+            <p class="text-white text-sm font-medium leading-none">{{ user.prenom }} {{ user.nom }}</p>
+            <p class="text-white/40 text-xs mt-0.5">
+              {{ "Expert juridique" if user.role == "expert" else "Client" }}
+            </p>
+          </div>
+        </div>
+
+        <a href="/logout"
+           class="text-white/50 hover:text-white/80 text-sm transition-colors">
+          Déconnexion
+        </a>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+
+  <!-- CONTENT -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-navy-900 mt-16 py-8">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-6 h-6 rounded bg-gold-600 flex items-center justify-center">
+          <span class="text-white font-serif font-bold text-xs">J</span>
+        </div>
+        <span class="text-white/50 text-sm">Javelaud — Cabinet d'expertise juridique</span>
+      </div>
+      <p class="text-white/30 text-xs">© 2025 Javelaud. Tous droits réservés.</p>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -60,6 +60,52 @@
       font-weight: 500;
     }
 
+    .deep-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-left: 0.25rem;
+    }
+    .deep-toggle-wrap .deep-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.85);
+      cursor: pointer;
+      user-select: none;
+    }
+    .deep-toggle {
+      position: relative;
+      width: 32px;
+      height: 18px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .deep-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .deep-toggle.active { background: #f5c400; }
+    .deep-toggle.active::after { transform: translateX(14px); }
+
+    .message-model-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.65rem;
+      color: #94a3b8;
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
     .nav-actions {
       display: flex;
       align-items: center;
@@ -544,7 +590,11 @@
       <polygon points="169,21 185,7 185,18 178,14" fill="white"/>
       <polygon points="185,7 174,14 178,14 178,21" fill="white" opacity="0.8"/>
     </svg>
-    <span class="nav-badge">Propulsé par Claude Opus 4.6</span>
+    <span class="nav-badge" id="nav-badge">⚡ Sonnet 4.7</span>
+    <div class="deep-toggle-wrap" title="Active Opus 4.7 — plus poussé, mais plus lent et plus coûteux">
+      <div class="deep-toggle" id="deep-toggle" onclick="toggleDeepSearch()"></div>
+      <span class="deep-label" onclick="toggleDeepSearch()">🔬 Recherche approfondie</span>
+    </div>
   </div>
   <div class="nav-actions">
     <span class="session-info" id="session-label"></span>
@@ -632,6 +682,35 @@
   let sessionId = null;
   let isStreaming = false;
   let pendingFiles = []; // [{id, filename}]
+  let deepSearch = localStorage.getItem('deepSearch') === 'true';
+
+  function applyDeepSearchUI() {
+    const toggle = document.getElementById('deep-toggle');
+    const badge = document.getElementById('nav-badge');
+    if (!toggle || !badge) return;
+    if (deepSearch) {
+      toggle.classList.add('active');
+      badge.textContent = '🔬 Opus 4.7';
+    } else {
+      toggle.classList.remove('active');
+      badge.textContent = '⚡ Sonnet 4.7';
+    }
+  }
+
+  function toggleDeepSearch() {
+    deepSearch = !deepSearch;
+    localStorage.setItem('deepSearch', deepSearch);
+    applyDeepSearchUI();
+  }
+
+  function modelLabel(modelId) {
+    if (!modelId) return null;
+    if (modelId.includes('opus')) return '🔬 Opus 4.7';
+    if (modelId.includes('sonnet')) return '⚡ Sonnet 4.7';
+    return modelId;
+  }
+
+  document.addEventListener('DOMContentLoaded', applyDeepSearchUI);
 
   async function startSession() {
     try {
@@ -829,7 +908,7 @@
     const typingEl = appendTyping();
 
     try {
-      const payload = { content: displayText };
+      const payload = { content: displayText, deep_search: deepSearch };
       if (snapFiles.length) {
         payload.file_ids = snapFiles.map(f => f.id);
         payload.filenames = snapFiles.map(f => f.filename);
@@ -851,6 +930,7 @@
       typingEl.remove();
       const bubble = appendMessage('assistant', '');
       let rawText = '';
+      let modelUsed = null;
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -868,10 +948,20 @@
           if (!line.startsWith('data: ')) continue;
           const token = line.slice(6);
           if (token === '[DONE]') break;
+          if (token.startsWith('__MODEL__:')) {
+            modelUsed = token.slice(10);
+            continue;
+          }
           rawText += token.replace(/\\n/g, '\n');
           bubble.innerHTML = marked.parse(rawText);
           document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
         }
+      }
+
+      // Badge du modèle utilisé
+      const label = modelLabel(modelUsed);
+      if (label) {
+        bubble.insertAdjacentHTML('beforeend', `<div class="message-model-badge">${label}</div>`);
       }
 
       // Footer SOCIC

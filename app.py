@@ -111,7 +111,7 @@ def _send_email_sync(to_email: str, analysis_markdown: str, filename: str) -> No
     {html_body}
   </div>
   <div class="footer">
-    Propulsé par Claude Opus 4.6 — Anthropic &nbsp;·&nbsp;
+    Propulsé par Claude Opus 4.7 — Anthropic &nbsp;·&nbsp;
     Analyse à titre indicatif uniquement
   </div>
 </div>
@@ -153,7 +153,7 @@ Effectue une analyse sectorielle complète et détaillée en identifiant les poi
 Compare ses ratios financiers avec les moyennes de son secteur et fournis des recommandations concrètes."""
 
         async with client.beta.messages.stream(
-            model="claude-opus-4-6",
+            model="claude-opus-4-7",
             max_tokens=4096,
             system=SYSTEM_PROMPT,
             messages=[

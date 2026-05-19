@@ -52,7 +52,7 @@ Effectue une analyse sectorielle complète et détaillée en identifiant les poi
 Compare ses ratios financiers avec les moyennes de son secteur et fournis des recommandations concrètes."""
 
         with client.beta.messages.stream(
-            model="claude-opus-4-6",
+            model="claude-opus-4-7",
             max_tokens=4096,
             thinking={"type": "adaptive"},
             system=SYSTEM_PROMPT,

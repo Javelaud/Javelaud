@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page {
+      margin: 2.5cm 2cm;
+      @bottom-right { content: "Page " counter(page) " / " counter(pages); font-size: 9pt; color: #666; }
+    }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 11pt;
+      line-height: 1.8;
+      color: #1a1a1a;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #1a1a1a;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .title-main {
+      font-size: 16pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+    .title-sub {
+      font-size: 12pt;
+      margin: 6px 0 0;
+      font-style: italic;
+    }
+    .ref-law {
+      font-size: 9pt;
+      color: #555;
+      margin-top: 4px;
+    }
+    .section-title {
+      font-size: 12pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+      margin: 28px 0 14px;
+    }
+    p { margin: 8px 0; text-align: justify; }
+    table.identity {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    table.identity tr { border-bottom: 1px solid #eee; }
+    table.identity th {
+      text-align: left;
+      font-weight: normal;
+      color: #555;
+      padding: 6px 10px 6px 0;
+      width: 40%;
+      vertical-align: top;
+    }
+    table.identity td {
+      font-weight: bold;
+      padding: 6px 0;
+      vertical-align: top;
+    }
+    .declaration-box {
+      border: 1px solid #999;
+      padding: 20px 24px;
+      margin: 20px 0;
+      background: #fafafa;
+      text-align: justify;
+    }
+    .signature-section {
+      margin-top: 50px;
+    }
+    .signature-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+    .signature-block {
+      width: 60%;
+    }
+    .signature-line {
+      border-bottom: 1px solid #333;
+      height: 70px;
+      margin: 12px 0 5px;
+    }
+    .warning-box {
+      border-left: 4px solid #c0392b;
+      padding: 12px 16px;
+      margin: 24px 0;
+      background: #fdf2f2;
+      font-size: 10pt;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <p class="title-main">Attestation de non-condamnation</p>
+  <p class="title-sub">et déclaration de filiation</p>
+  <p class="ref-law">Article L. 123-11-1 du Code de commerce — Article R. 123-150 du Code de commerce</p>
+</div>
+
+<!-- Identité du déclarant -->
+<div class="section-title">Identité du déclarant</div>
+
+<table class="identity">
+  <tr>
+    <th>Civilité</th>
+    <td>{{ dossier.civilite or "___" }}</td>
+  </tr>
+  <tr>
+    <th>Nom de famille</th>
+    <td>{{ dossier.nom or "___________________________" }}</td>
+  </tr>
+  {% if dossier.nom_jeune_fille %}
+  <tr>
+    <th>Nom de naissance</th>
+    <td>{{ dossier.nom_jeune_fille }}</td>
+  </tr>
+  {% endif %}
+  <tr>
+    <th>Prénom(s)</th>
+    <td>{{ dossier.prenom or "___________________________" }}</td>
+  </tr>
+  <tr>
+    <th>Date de naissance</th>
+    <td>{{ date_naissance }}</td>
+  </tr>
+  <tr>
+    <th>Lieu de naissance</th>
+    <td>
+      {{ dossier.lieu_naissance or "___" }}
+      ({{ dossier.departement_naissance or "___" }})
+    </td>
+  </tr>
+  <tr>
+    <th>Nationalité</th>
+    <td>{{ dossier.nationalite or "Française" }}</td>
+  </tr>
+  <tr>
+    <th>Adresse personnelle</th>
+    <td>
+      {{ dossier.adresse_rue or "___" }},
+      {{ dossier.adresse_cp or "___" }}
+      {{ dossier.adresse_ville or "___" }}
+      {% if dossier.adresse_pays and dossier.adresse_pays != "France" %}
+        ({{ dossier.adresse_pays }})
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Qualité</th>
+    <td>Président et Associé unique de la SASU
+      <strong>{{ dossier.denomination_sociale or "___________________________" }}</strong>
+    </td>
+  </tr>
+</table>
+
+<!-- Déclaration de non-condamnation -->
+<div class="section-title">Déclaration de non-condamnation</div>
+
+<div class="declaration-box">
+  <p>
+    Je soussigné(e),
+    <strong>{{ dossier.civilite or "" }} {{ dossier.prenom or "_____" }} {{ dossier.nom or "_____" }}</strong>,
+    agissant en qualité de Président et Associé unique de la société
+    <strong>{{ dossier.denomination_sociale or "___________________________" }}</strong>,
+    déclare sur l'honneur ne pas être frappé(e) d'une des interdictions, déchéances ou
+    incapacités prévues par les dispositions législatives et réglementaires, notamment :
+  </p>
+  <ul>
+    <li>
+      n'avoir fait l'objet d'aucune condamnation pénale, civile ou administrative
+      entraînant une interdiction de gérer, d'administrer ou de diriger une personne morale ;
+    </li>
+    <li>
+      ne pas être en état de faillite personnelle, ni avoir fait l'objet d'une procédure
+      de redressement judiciaire ou de liquidation judiciaire entrant dans le champ
+      d'application de l'article L. 653-8 du Code de commerce ;
+    </li>
+    <li>
+      ne pas avoir été condamné pour avoir exercé des fonctions de direction, d'administration,
+      de gestion ou de contrôle en violation d'une mesure d'interdiction.
+    </li>
+  </ul>
+  <p>
+    <strong>
+      Cette déclaration est faite en application de l'article L. 123-11-1 du Code de
+      commerce et de l'article R. 123-150 du Code de commerce.
+    </strong>
+  </p>
+</div>
+
+<!-- Déclaration de filiation -->
+<div class="section-title">Déclaration de filiation</div>
+
+<table class="identity">
+  <tr>
+    <th>Nom et prénom du père</th>
+    <td>
+      {{ dossier.nom_pere or "___________________________" }}
+      {{ dossier.prenom_pere or "___________________________" }}
+    </td>
+  </tr>
+  <tr>
+    <th>Nom de naissance et prénom de la mère</th>
+    <td>
+      {{ dossier.nom_mere or "___________________________" }}
+      {{ dossier.prenom_mere_naissance or "___________________________" }}
+    </td>
+  </tr>
+</table>
+
+<div class="warning-box">
+  <strong>Avertissement :</strong> Toute fausse déclaration expose son auteur aux peines prévues
+  par l'article 441-1 du Code pénal (deux ans d'emprisonnement et 30 000 € d'amende)
+  et aux sanctions prévues par le Code de commerce en cas de déclaration inexacte.
+</div>
+
+<!-- Signature -->
+<div class="signature-section">
+  <p>
+    Fait à <strong>{{ dossier.siege_social_ville or "_______________" }}</strong>,
+    le <strong>{{ date_today }}</strong>
+  </p>
+  <p style="margin-top:8px;">
+    En foi de quoi, je signe la présente attestation pour servir et valoir ce que de droit.
+  </p>
+
+  <div class="signature-grid">
+    <div class="signature-block">
+      <p><strong>Signature du déclarant</strong></p>
+      <p>{{ dossier.civilite or "" }} {{ dossier.prenom or "_____" }} {{ dossier.nom or "_____" }}</p>
+      <div class="signature-line"></div>
+      <p style="font-size:9pt; color:#666;">
+        Signature précédée de la mention manuscrite « Lu et approuvé »
+      </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

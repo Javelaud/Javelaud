@@ -42,6 +42,7 @@ class MessageRequest(BaseModel):
     content: str
     file_ids: list[str] | None = None
     filenames: list[str] | None = None
+    deep_search: bool = False
 
 
 # ── Routes ──────────────────────────────────────────────────────────────────
@@ -179,7 +180,7 @@ async def send_message(session_id: str, body: MessageRequest):
     question_for_rag = user_text or (filenames[0] if filenames else "document")
 
     return StreamingResponse(
-        _stream_response(session_id, history, question_for_rag),
+        _stream_response(session_id, history, question_for_rag, body.deep_search),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -203,7 +204,7 @@ async def _do_stream(client, uses_files: bool, stream_kwargs: dict, assistant_pa
                 yield text
 
 
-async def _stream_response(session_id: str, history: list[dict], question: str):
+async def _stream_response(session_id: str, history: list[dict], question: str, deep_search: bool = False):
     """Génère la réponse en streaming et la sauvegarde dans l'historique."""
     client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
     assistant_parts: list[str] = []
@@ -231,8 +232,11 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
         }
     ]
 
-    # Modèles par ordre de préférence : Opus 4.7 d'abord, Sonnet en fallback
-    models_to_try = ["claude-opus-4-7", "claude-sonnet-4-6"]
+    # Recherche approfondie : Opus en primaire ; sinon Sonnet pour économiser. Fallback en cas de 529.
+    if deep_search:
+        models_to_try = ["claude-opus-4-7", "claude-sonnet-4-6"]
+    else:
+        models_to_try = ["claude-sonnet-4-6", "claude-opus-4-7"]
 
     for model in models_to_try:
         stream_kwargs = dict(
@@ -243,6 +247,7 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
             thinking={"type": "adaptive"},
         )
         try:
+            yield f"data: __MODEL__:{model}\n\n"
             async for text in _do_stream(client, uses_files, stream_kwargs, assistant_parts):
                 escaped = text.replace("\n", "\\n")
                 yield f"data: {escaped}\n\n"
