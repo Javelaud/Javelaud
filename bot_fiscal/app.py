@@ -222,15 +222,25 @@ async def _stream_response(session_id: str, history: list[dict], question: str):
     # Utiliser le beta endpoint si l'historique contient des documents
     uses_files = any(isinstance(msg.get("content"), list) for msg in history)
 
-    # Modèles par ordre de préférence : Opus d'abord, Sonnet en fallback
-    models_to_try = ["claude-opus-4-6", "claude-sonnet-4-6"]
+    # Prompt caching : system prompt stable → mis en cache côté Anthropic
+    system_cached = [
+        {
+            "type": "text",
+            "text": system_prompt,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+
+    # Modèles par ordre de préférence : Opus 4.7 d'abord, Sonnet en fallback
+    models_to_try = ["claude-opus-4-7", "claude-sonnet-4-6"]
 
     for model in models_to_try:
         stream_kwargs = dict(
             model=model,
-            max_tokens=4096,
-            system=system_prompt,
+            max_tokens=8192,
+            system=system_cached,
             messages=history,
+            thinking={"type": "adaptive"},
         )
         try:
             async for text in _do_stream(client, uses_files, stream_kwargs, assistant_parts):
