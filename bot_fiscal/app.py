@@ -223,6 +223,15 @@ async def _stream_response(session_id: str, history: list[dict], question: str, 
     # Utiliser le beta endpoint si l'historique contient des documents
     uses_files = any(isinstance(msg.get("content"), list) for msg in history)
 
+    # Prompt caching : system prompt stable → mis en cache côté Anthropic
+    system_cached = [
+        {
+            "type": "text",
+            "text": system_prompt,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+
     # Recherche approfondie : Opus en primaire ; sinon Sonnet pour économiser. Fallback en cas de 529.
     if deep_search:
         models_to_try = ["claude-opus-4-7", "claude-sonnet-4-6"]
@@ -232,9 +241,10 @@ async def _stream_response(session_id: str, history: list[dict], question: str, 
     for model in models_to_try:
         stream_kwargs = dict(
             model=model,
-            max_tokens=4096,
-            system=system_prompt,
+            max_tokens=8192,
+            system=system_cached,
             messages=history,
+            thinking={"type": "adaptive"},
         )
         try:
             yield f"data: __MODEL__:{model}\n\n"
