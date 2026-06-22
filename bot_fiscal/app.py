@@ -239,13 +239,14 @@ async def _stream_response(session_id: str, history: list[dict], question: str, 
         models_to_try = ["claude-sonnet-4-6", "claude-opus-4-8"]
 
     for model in models_to_try:
-        # Effort élevé pour l'exactitude fiscale (tolérance zéro). "max" est réservé au
-        # tier Opus ; Sonnet plafonne à "high". Passé via extra_body pour rester compatible
-        # avec toute version du SDK (output_config n'est pas typé sur les anciennes).
-        effort = "max" if model.startswith("claude-opus") else "high"
+        # Effort élevé pour l'exactitude fiscale. "xhigh" est le meilleur réglage Opus 4.8
+        # (entre high et max, moins sujet au sur-raisonnement que "max" — qui pouvait épuiser
+        # tout le budget de tokens en réflexion et renvoyer une réponse vide). Sonnet plafonne
+        # à "high". Passé via extra_body pour rester compatible avec toute version du SDK.
+        effort = "xhigh" if model.startswith("claude-opus") else "high"
         stream_kwargs = dict(
             model=model,
-            max_tokens=8192,
+            max_tokens=32000,
             system=system_cached,
             messages=history,
             thinking={"type": "adaptive"},
