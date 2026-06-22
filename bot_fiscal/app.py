@@ -234,17 +234,22 @@ async def _stream_response(session_id: str, history: list[dict], question: str, 
 
     # Recherche approfondie : Opus en primaire ; sinon Sonnet pour économiser. Fallback en cas de 529.
     if deep_search:
-        models_to_try = ["claude-opus-4-7", "claude-sonnet-4-6"]
+        models_to_try = ["claude-opus-4-8", "claude-sonnet-4-6"]
     else:
-        models_to_try = ["claude-sonnet-4-6", "claude-opus-4-7"]
+        models_to_try = ["claude-sonnet-4-6", "claude-opus-4-8"]
 
     for model in models_to_try:
+        # Effort élevé pour l'exactitude fiscale (tolérance zéro). "max" est réservé au
+        # tier Opus ; Sonnet plafonne à "high". Passé via extra_body pour rester compatible
+        # avec toute version du SDK (output_config n'est pas typé sur les anciennes).
+        effort = "max" if model.startswith("claude-opus") else "high"
         stream_kwargs = dict(
             model=model,
             max_tokens=8192,
             system=system_cached,
             messages=history,
             thinking={"type": "adaptive"},
+            extra_body={"output_config": {"effort": effort}},
         )
         try:
             yield f"data: __MODEL__:{model}\n\n"
