@@ -590,8 +590,8 @@
       <polygon points="169,21 185,7 185,18 178,14" fill="white"/>
       <polygon points="185,7 174,14 178,14 178,21" fill="white" opacity="0.8"/>
     </svg>
-    <span class="nav-badge" id="nav-badge">⚡ Sonnet 4.7</span>
-    <div class="deep-toggle-wrap" title="Active Opus 4.7 — plus poussé, mais plus lent et plus coûteux">
+    <span class="nav-badge" id="nav-badge">⚡ Sonnet 4.6</span>
+    <div class="deep-toggle-wrap" title="Active Opus 4.8 — plus poussé, mais plus lent et plus coûteux">
       <div class="deep-toggle" id="deep-toggle" onclick="toggleDeepSearch()"></div>
       <span class="deep-label" onclick="toggleDeepSearch()">🔬 Recherche approfondie</span>
     </div>
@@ -690,10 +690,10 @@
     if (!toggle || !badge) return;
     if (deepSearch) {
       toggle.classList.add('active');
-      badge.textContent = '🔬 Opus 4.7';
+      badge.textContent = '🔬 Opus 4.8';
     } else {
       toggle.classList.remove('active');
-      badge.textContent = '⚡ Sonnet 4.7';
+      badge.textContent = '⚡ Sonnet 4.6';
     }
   }
 
@@ -705,8 +705,8 @@
 
   function modelLabel(modelId) {
     if (!modelId) return null;
-    if (modelId.includes('opus')) return '🔬 Opus 4.7';
-    if (modelId.includes('sonnet')) return '⚡ Sonnet 4.7';
+    if (modelId.includes('opus')) return '🔬 Opus 4.8';
+    if (modelId.includes('sonnet')) return '⚡ Sonnet 4.6';
     return modelId;
   }
 
